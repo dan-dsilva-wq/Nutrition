@@ -26,7 +26,7 @@ function loadDotEnvFile(fileName: string) {
 loadDotEnvFile(".env.local");
 
 /**
- * Canonical production URL the installed Android app must load from. This is
+ * Canonical production URL the installed Android and iOS apps must load from. This is
  * the source of truth — the `.env.local` override below is only for pointing
  * the WebView at a different host during local development. If you ever need
  * to migrate to a new production domain, change this constant **and** the
@@ -96,6 +96,9 @@ const config: CapacitorConfig = {
     allowNavigation,
   },
   android: {
+    backgroundColor: "#fbfaf6",
+  },
+  ios: {
     backgroundColor: "#fbfaf6",
   },
 };

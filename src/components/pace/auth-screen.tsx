@@ -60,7 +60,7 @@ export function AuthScreen() {
       return;
     }
     if (mode === "sign-up") {
-      setMessage("Check your inbox to confirm.");
+      setMessage("We sent you a confirmation email. Click the link in your inbox to finish.");
     }
   }
 
@@ -109,10 +109,10 @@ export function AuthScreen() {
           <Wordmark size="lg" />
         </div>
         <h1 className="blur-in-anim font-display mt-10 text-4xl leading-[1.05] text-ink-2">
-          Lose weight at your <span className="italic">own pace</span>.
+          A food diary at your <span className="italic">own pace</span>.
         </h1>
         <p className="slide-up-anim mt-3 text-base text-muted">
-          Snap a meal. See the next good move. No streak shame, no shouty graphics.
+          Snap a meal. See the next good move. Calm tracking, no pressure.
         </p>
 
         <form className="slide-up-anim mt-10 space-y-4" onSubmit={handleEmailAuth}>
@@ -125,7 +125,10 @@ export function AuthScreen() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </Field>
-          <Field label="Password">
+          <Field
+            label="Password"
+            hint={mode === "sign-up" ? "At least 8 characters." : undefined}
+          >
             <Input
               type="password"
               autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
@@ -173,7 +176,7 @@ export function AuthScreen() {
         </button>
 
         <p className="fade-anim mt-auto py-8 text-center text-xs text-faint">
-          Adults only. General wellness coaching, not medical advice.
+          For adults 18+. Pace is a food-logging tool, not medical advice.
         </p>
       </div>
     </div>

@@ -5,11 +5,11 @@ import { Check } from "lucide-react";
 import { useAppState } from "@/lib/state/app-state";
 
 const lines = [
-  "Calculating your maintenance calories...",
-  "Setting protein targets for muscle preservation...",
-  "Designing your weekly weight-loss pace...",
-  "Locking in water and step goals...",
-  "Finishing your plan.",
+  "Working out your daily calorie target...",
+  "Setting protein to keep your muscle strong...",
+  "Pacing your weekly weight change...",
+  "Setting water and step goals...",
+  "Wrapping up your plan.",
 ];
 
 const STEP_MS = 1500;

@@ -123,8 +123,8 @@ export function PlanReveal({ onNext }: { onNext: () => void }) {
           ))}
           {targets.deficit > 0 ? (
             <li>
-              - A {Math.round(targets.deficit)} kcal daily deficit is the largest
-              we&apos;ll allow without dropping below the calorie floor.
+              - You&apos;ll be eating about {Math.round(targets.deficit)} calories below your daily burn.
+              We won&apos;t go any lower than that to keep you fuelled.
             </li>
           ) : null}
         </ul>

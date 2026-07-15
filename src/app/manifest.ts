@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Pace - your weight-loss partner",
+    name: "Pace - food diary & meal logger",
     short_name: "Pace",
     description:
-      "Calm, photo-first nutrition tracking for busy adults losing weight at their own pace.",
+      "A calm, photo-first food diary. Snap a meal, log it in seconds, and keep a tidy record of what you eat.",
     start_url: "/",
     scope: "/",
     display: "standalone",

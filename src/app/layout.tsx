@@ -19,17 +19,17 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pace-nutrition.vercel.app"),
-  title: "Pace - your weight-loss partner",
+  title: "Pace - food diary & meal logger",
   description:
-    "Pace is a calm, photo-first nutrition app for busy adults. Snap a meal, see the next good move, lose weight at your own pace.",
+    "Pace is a calm, photo-first food diary. Snap a meal, log it in seconds, and keep a tidy record of what you eat.",
   applicationName: "Pace",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Pace - your weight-loss partner",
+    title: "Pace - food diary & meal logger",
     description:
-      "Calm, photo-first nutrition tracking for busy adults losing weight at their own pace.",
+      "A calm, photo-first food diary. Snap a meal, log it in seconds, and keep a tidy record of what you eat.",
     url: "/",
     siteName: "Pace",
     type: "website",

@@ -1,7 +1,7 @@
 "use client";
 
 import { BellRing, Camera, Smartphone, Sun, Sunrise, Sunset } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppState } from "@/lib/state/app-state";
 import {
   DEFAULT_REMINDER_CONFIG,
@@ -23,22 +23,14 @@ export function RemindersScreen() {
   const on = reminderState === "on";
   const config = readConfig(onboardingExtras);
   const [permission, setPermission] = useState<"granted" | "denied" | "default" | "unknown">(
-    "unknown",
+    () => {
+      if (typeof window === "undefined") return "unknown";
+      if (isNative()) return "default";
+      if ("Notification" in window) return Notification.permission;
+      return "denied";
+    },
   );
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (isNative()) {
-      setPermission("default");
-      return;
-    }
-    if ("Notification" in window) {
-      setPermission(Notification.permission);
-    } else {
-      setPermission("denied");
-    }
-  }, []);
 
   async function applyConfig(next: PhotoReminderConfig, enable: boolean) {
     actions.setOnboardingExtras({ photoReminders: next });

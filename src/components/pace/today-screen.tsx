@@ -38,9 +38,9 @@ import { useAppVersion } from "@/lib/app-version";
 
 function greet() {
   const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 18) return "afternoon";
-  return "evening";
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
 }
 
 function timeOfDayMark() {
@@ -59,13 +59,13 @@ function vibeLine(args: {
   hour: number;
 }) {
   const { mealsCount, calorieRatio, overshoot, hour } = args;
-  if (overshoot > 0) return "A walk closes the gap.";
-  if (mealsCount === 0 && hour < 11) return "Fresh page. Make it count.";
-  if (mealsCount === 0 && hour >= 11) return "Nothing logged yet — easy fix.";
-  if (calorieRatio >= 0.95) return "Right on target. Nice.";
-  if (calorieRatio >= 0.7) return "Almost home.";
-  if (calorieRatio >= 0.4) return "Halfway there. Strong start to the day.";
-  if (calorieRatio > 0) return "Strong start.";
+  if (overshoot > 0) return "A short walk will close the gap.";
+  if (mealsCount === 0 && hour < 11) return "A fresh page. Let's go.";
+  if (mealsCount === 0 && hour >= 11) return "Nothing logged yet — easy to fix.";
+  if (calorieRatio >= 0.95) return "Right on target. Lovely.";
+  if (calorieRatio >= 0.7) return "Almost there.";
+  if (calorieRatio >= 0.4) return "Halfway there.";
+  if (calorieRatio > 0) return "Nice start.";
   return "Let's get the day going.";
 }
 
@@ -199,7 +199,7 @@ function formatHistoryDay(dayKey: string) {
 }
 
 export function TodayScreen() {
-  const { profile, targets, meals: allMeals, weights, waterMl, steps, auth, actions } = useAppState();
+  const { profile, targets, meals: allMeals, weights, waterMl, steps, auth, onboardingExtras, actions } = useAppState();
   const totals = useDayTotals();
   const meals = useTodayMeals();
   const [isEditingSteps, setIsEditingSteps] = useState(false);
@@ -219,7 +219,13 @@ export function TodayScreen() {
     const ymd = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     const lastKey = `pace.lastUsedDay.${userId}`;
     const lastUsed = window.localStorage.getItem(lastKey);
-    if (lastUsed && lastUsed !== ymd) {
+    // Daily tester review sheet is opt-in: it only fires for builds that
+    // explicitly enable it (or for users that flipped the localStorage flag),
+    // so production users don't get a "How was yesterday's version?" prompt.
+    const testerMode =
+      process.env.NEXT_PUBLIC_TESTER_MODE === "true" ||
+      window.localStorage.getItem("pace.testerMode") === "true";
+    if (testerMode && lastUsed && lastUsed !== ymd) {
       const seenKey = `pace.reviewSeen.${userId}.${lastUsed}`;
       if (!window.localStorage.getItem(seenKey)) {
         window.setTimeout(() => setReviewDay(lastUsed), 0);
@@ -267,20 +273,20 @@ export function TodayScreen() {
       return { label: "Log breakfast", body: "Snap a photo or type it in.", icon: "camera" };
     }
     if (meals.length < 2 && h >= 11 && h < 15) {
-      return { label: "Time for lunch", body: "Photo or typed food both work.", icon: "camera" };
+      return { label: "Time for lunch", body: "Photo or typed food, whichever's easiest.", icon: "camera" };
     }
     if (meals.length < 3 && h >= 17) {
-      return { label: "Log dinner", body: "Keep it boring, keep it on plan.", icon: "camera" };
+      return { label: "Log dinner", body: "A few seconds now keeps the day on track.", icon: "camera" };
     }
     if (waterMl < targets.waterMl * 0.5) {
       return {
         label: "Drink some water",
-        body: `${(Math.max(targets.waterMl - waterMl, 0) / 1000).toFixed(1)} L to target.`,
+        body: `${(Math.max(targets.waterMl - waterMl, 0) / 1000).toFixed(1)} L to your target.`,
         icon: "water",
       };
     }
     if (overshoot > 0) {
-      return { label: "Walk it off", body: `Roughly ${Math.round(overshoot / 60)} min walk closes the gap.`, icon: "steps" };
+      return { label: "A short walk", body: `About ${Math.round(overshoot / 60)} minutes will close the gap.`, icon: "steps" };
     }
     return { label: "Log a snack", body: "Even a small one keeps the day honest.", icon: "camera" };
   }, [meals.length, waterMl, targets.waterMl, overshoot]);
@@ -341,7 +347,8 @@ export function TodayScreen() {
         </div>
         <h1 className="font-display mt-2 flex flex-wrap items-center gap-2.5 text-[40px] leading-[1.02] text-ink-2">
           <span>
-            Light, <span className="italic text-forest">{greet()}.</span>
+            <span className="italic text-forest">{greet()}</span>
+            {onboardingExtras.name ? `, ${onboardingExtras.name}.` : "."}
           </span>
           {(() => {
             const { Icon, tint } = timeOfDayMark();
@@ -389,18 +396,18 @@ export function TodayScreen() {
           ) : overshoot ? (
             <>
               <span className="rounded-full bg-clay/15 px-2.5 py-0.5 text-[12px] font-semibold text-clay">
-                {overshoot} over
+                {overshoot} kcal over
               </span>
               <span className="text-faint">·</span>
-              <span>a walk closes the gap</span>
+              <span>a short walk closes the gap</span>
             </>
           ) : (
             <>
               <span className="rounded-full bg-forest/10 px-2.5 py-0.5 text-[12px] font-semibold text-forest">
-                {remaining} left
+                {remaining} kcal left
               </span>
               <span className="text-faint">·</span>
-              <span>{calorieRatio >= 0.4 ? "on pace for a clean day" : "plenty of runway"}</span>
+              <span>{calorieRatio >= 0.4 ? "on track for a steady day" : "plenty of room"}</span>
             </>
           )}
         </div>
@@ -538,7 +545,7 @@ export function TodayScreen() {
                       hour: "2-digit",
                       minute: "2-digit",
                     }).format(new Date(m.loggedAt))}{" "}
-                    · {m.proteinG}g protein
+                    · {Math.round(m.proteinG)}g protein
                   </div>
                 </div>
                 <div className="numerals text-base text-ink-2">{m.calories}</div>

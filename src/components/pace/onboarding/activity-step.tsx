@@ -48,7 +48,7 @@ export function ActivityStep({ onNext }: { onNext: () => void }) {
           How active is a normal week?
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Be honest. Under-counting is the usual mistake.
+          Pick what feels closest to your normal week. You can change this later.
         </p>
         <div className="mt-8 grid grid-cols-1 gap-3">
           {levels.map((l) => {

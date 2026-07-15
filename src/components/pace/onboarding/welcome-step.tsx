@@ -12,7 +12,7 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
           Your plan starts here
         </span>
         <h1 className="mt-3 font-display text-[44px] leading-[1.02] text-ink-2">
-          Lose weight at <span className="text-forest">your own pace</span>.
+          Log meals at <span className="text-forest">your own pace</span>.
         </h1>
         <p className="mt-4 text-base text-muted">
           A calm, premium plan tailored to your body, your routine, and the life
@@ -22,8 +22,8 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
 
       <ul className="mt-10 space-y-3 text-sm text-ink-2">
         <Bullet color="forest">A daily target built from your numbers.</Bullet>
-        <Bullet color="sky">Three habits that move the needle, gently.</Bullet>
-        <Bullet color="clay">A coach that holds the line without nagging.</Bullet>
+        <Bullet color="sky">Three small habits that make the difference.</Bullet>
+        <Bullet color="clay">A coach that supports without nagging.</Bullet>
       </ul>
 
       <div className="mt-auto pt-10">
@@ -31,7 +31,7 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
           Begin <ArrowRight size={18} />
         </Button>
         <p className="mt-3 text-center text-xs text-muted">
-          Takes about 90 seconds.
+          Takes about 2 minutes.
         </p>
       </div>
     </div>

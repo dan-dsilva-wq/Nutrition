@@ -147,13 +147,13 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
     <div className="flex h-full flex-col">
       <div>
         <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
-          Step 3 - Goal
+          Step 3 · Goal
         </span>
         <h2 className="mt-2 font-display text-3xl leading-tight text-ink-2">
           What are you aiming for?
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Choose the outcome first, then set the pace. We still keep calorie targets inside adult safety floors.
+          Pick the outcome you want, then choose your pace. We won&apos;t let your calories drop too low for your safety.
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-2">
@@ -178,13 +178,13 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
 
         <div className="mt-6">
           <Field
-            label={isWeightChangeGoal ? "Goal weight (kg)" : "Reference weight (kg)"}
+            label={isWeightChangeGoal ? "Goal weight (kg)" : "Target weight (kg)"}
             hint={
               goalIntent === "lose"
-                ? "Must be below your current weight."
+                ? "A number a little below where you are now."
                 : goalIntent === "gain"
-                  ? "Must be above your current weight."
-                  : "Used for charts and progress context."
+                  ? "A number a little above where you are now."
+                  : "Used to show your charts and progress."
             }
           >
             <Input
@@ -252,7 +252,7 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
             ) : null}
             {weeklyRateKg > HIGH_WEEKLY_LOSS_KG ? (
               <p className="mt-3 rounded-2xl border border-clay/30 bg-white/65 px-3 py-2 text-xs text-clay">
-                This is aggressive. Public guidance usually points to about 0.5 to 1.0 kg/week, and the app will still apply calorie floors.
+                This is a fast pace. Most healthy guidance suggests 0.5 to 1.0 kg per week. We&apos;ll always keep your calories above a safe minimum.
               </p>
             ) : null}
           </div>

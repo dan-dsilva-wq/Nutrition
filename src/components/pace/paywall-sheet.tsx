@@ -13,12 +13,12 @@ import {
 import { Button, Sheet } from "./primitives";
 
 const premiumPerks = [
-  "Unlimited AI photo logging",
-  "Tailored nutrition guide",
-  "Coach without limits",
-  "Full progress history + photo compare",
-  "Smart pantry barcode scanning & calendar reminders",
-  "Custom reminder schedules",
+  "Unlimited photo food logging",
+  "Your tailored 7-day food guide",
+  "Ask the coach anytime",
+  "Full progress history & side-by-side photos",
+  "Custom meal & water reminders",
+  "Cancel any time, no contract",
 ];
 
 export function PaywallSheet({

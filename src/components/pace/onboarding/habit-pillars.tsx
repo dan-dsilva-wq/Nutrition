@@ -20,7 +20,7 @@ const pillars: {
     icon: Footprints,
     eyebrow: "Move",
     title: "10,000 steps a day",
-    body: "Walking is the most under-rated weight-loss tool. It can add 200-400 kcal of easy burn without driving hunger.",
+    body: "Walking is the simplest weight-loss tool there is. An extra 200-400 calories burned, without making you hungrier.",
     accent: "linear-gradient(135deg,#a7f3d0,#0d9488)",
   },
   {
@@ -28,15 +28,15 @@ const pillars: {
     icon: Droplet,
     eyebrow: "Hydrate",
     title: "2 to 3 litres of water",
-    body: "Half of \"hunger\" is mild dehydration. A consistent water target dampens cravings and keeps performance steady.",
+    body: "Many cravings are really mild thirst. Drinking enough water settles cravings and keeps your energy steady.",
     accent: "linear-gradient(135deg,#bae6fd,#0284c7)",
   },
   {
     id: "nutrition",
     icon: Apple,
-    eyebrow: "Eat real",
-    title: "Protein + fiber, every meal",
-    body: "Protein protects muscle while you lose; fiber buys fullness for almost no calories. Build every plate around them.",
+    eyebrow: "Eat well",
+    title: "Protein + fibre, every meal",
+    body: "Protein keeps your muscle strong while you lose weight. Fibre keeps you full for hardly any calories. Build every meal around them.",
     accent: "linear-gradient(135deg,#fed7aa,#fb923c)",
   },
 ];

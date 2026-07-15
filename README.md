@@ -68,6 +68,8 @@ npm run build
 npm run cap:add:android
 npm run cap:sync
 npm run cap:open:android
+npm run cap:sync:ios
+npm run cap:open:ios
 ```
 
 ## Android App Shell
@@ -104,6 +106,29 @@ Once Android Studio is installed and the app is pointing at your deployed `https
 5. Upload that bundle to Google Play Console with your privacy policy and store listing.
 
 The repo now supports a local `android/keystore.properties` file for release signing. If that file is present, the Android `release` build automatically signs with it. Keep that file and the keystore itself out of version control.
+
+## iPhone App
+
+The native iOS project lives in [ios/App](./ios/App) and includes the Pace icon,
+launch screen, camera/photo permissions, local notifications, RevenueCat, and the
+`com.danieldsilva.pace://auth/callback` OAuth callback.
+
+Capacitor 8 requires iOS 15 or newer and Xcode 26 or newer. iOS apps can only be
+signed and built on macOS. On a Mac, the short path to installing it is:
+
+```bash
+npm install
+npm run cap:sync:ios
+npm run cap:open:ios
+```
+
+In Xcode, select the `App` target, choose your Apple Developer team under
+Signing & Capabilities, connect your iPhone, and press Run. Xcode's automatic
+signing creates the development provisioning profile. For a downloadable build,
+archive it and upload it to TestFlight.
+
+See [IOS_RELEASE_CHECKLIST.md](./IOS_RELEASE_CHECKLIST.md) for the one-time Apple,
+Supabase, RevenueCat, and TestFlight setup.
 
 ## Safety Positioning
 

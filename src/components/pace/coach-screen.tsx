@@ -98,15 +98,15 @@ export function CoachScreen() {
         actions.appendChat({
           role: "assistant",
           content:
-            "Coach is on hold (no API key). I'll mirror back: stay on plan, log the next meal, drink a glass of water. Tomorrow is a normal day, not a redo.",
+            "Coach is taking a short break. While we're offline, here's the plan: log your next meal, drink a glass of water, take ten minutes outside. Tomorrow is a normal day, not a do-over.",
           actions: ["Log next meal", "Drink water", "10 min walk"],
         });
       } else {
-        const json = await res.json().catch(() => ({}));
-        setError(json.error ?? "Coach failed.");
+        await res.json().catch(() => ({}));
+        setError("Coach can't reply right now. Please try again in a moment.");
       }
     } catch {
-      setError("Network unavailable.");
+      setError("No connection. Check your internet and try again.");
     } finally {
       setBusy(false);
     }
@@ -122,7 +122,7 @@ export function CoachScreen() {
           Talk it <span className="text-forest">through.</span>
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Practical, calm. Not a cheerleader, not a drill sergeant.
+          Calm, practical answers. Ask anything about your day, your meals, or your plan.
         </p>
       </header>
 

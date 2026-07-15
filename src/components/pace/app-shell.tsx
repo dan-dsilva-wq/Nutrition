@@ -47,7 +47,7 @@ const drawerItems: NavItem[] = [
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { auth, profile, actions } = useAppState();
+  const { auth, profile, onboardingExtras, actions } = useAppState();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isActive = (href: string) =>
@@ -55,10 +55,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isCoachRoute = isActive("/you/coach");
 
   const initials = (() => {
+    const name = onboardingExtras.name?.trim();
+    if (name) {
+      const parts = name.split(/\s+/);
+      const first = parts[0]?.[0] ?? "";
+      const second = parts[1]?.[0] ?? "";
+      const combined = `${first}${second}`.toUpperCase();
+      if (combined) return combined;
+    }
     if (auth.kind === "signed-in" && auth.email) {
       return auth.email.slice(0, 2).toUpperCase();
     }
-    if (profile.sexForCalories === "male") return "P";
     return "P";
   })();
 
@@ -169,7 +176,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="px-5 pt-2">
               <div className="rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl p-4">
                 <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
-                  Signed in
+                  {onboardingExtras.name ? `Hi, ${onboardingExtras.name}` : "Signed in"}
                 </div>
                 <div className="mt-1 truncate font-display text-lg text-ink-2">
                   {auth.kind === "signed-in"
@@ -179,7 +186,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       : "Not signed in"}
                 </div>
                 <p className="mt-0.5 text-xs text-muted">
-                  Goal {profile.goalWeightKg} kg · current {profile.currentWeightKg} kg
+                  Goal {profile.goalWeightKg} kg · now {profile.currentWeightKg} kg
                 </p>
               </div>
             </div>

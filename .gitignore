@@ -33,6 +33,13 @@
 /android/*.jks
 /android/*.keystore
 
+# iOS local machine and build files
+/ios/App/DerivedData/
+/ios/App/build/
+/ios/App/*.xcworkspace/xcuserdata/
+/ios/App/*.xcodeproj/xcuserdata/
+*.xcuserstate
+
 # misc
 .DS_Store
 *.pem

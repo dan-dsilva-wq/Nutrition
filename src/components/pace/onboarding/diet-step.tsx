@@ -52,7 +52,7 @@ export function DietStep({ onNext }: { onNext: () => void }) {
           Anything we should keep off your plate?
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Tap any that apply. Tailors your future food guide.
+          Tap any that apply. We&apos;ll keep these out of your meal suggestions.
         </p>
         <div className="mt-8 flex flex-wrap gap-2">
           {options.map((o) => {
