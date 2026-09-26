@@ -161,7 +161,8 @@ trial to real billing. Test on a separate deployment first.
 
 1. Create a git branch named `billing-sandbox` from `main` and push it. Vercel
    gives it a stable URL like
-   `https://pace-nutrition-git-billing-sandbox-<team>.vercel.app`.
+   `https://nutrition-git-billing-sandbox-daniels-projects-f6d294fb.vercel.app`
+   (the exact URL is in the Vercel deployment for that branch).
 2. In Vercel > Settings > Environment Variables, add Preview variables scoped to
    the `billing-sandbox` branch: everything in section 6 above plus
    `NEXT_PUBLIC_BILLING_ENABLED=true`. Redeploy the branch.
