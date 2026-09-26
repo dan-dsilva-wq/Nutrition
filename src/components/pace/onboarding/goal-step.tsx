@@ -7,6 +7,8 @@ import {
   HIGH_WEEKLY_LOSS_KG,
   calculateDailyTargets,
   formatWeeklyKg,
+  canOfferWeightLoss,
+  minimumGoalWeightKg,
   suggestedGoalWeightKg,
   type GoalIntent,
 } from "@/lib/targets";
@@ -52,10 +54,27 @@ function defaultRate(goalIntent: GoalIntent) {
 }
 
 export function GoalStep({ onNext }: { onNext: () => void }) {
-  const { draft, actions } = useAppState();
+  const { draft, onboardingExtras, actions } = useAppState();
+  const healthFlags = onboardingExtras.healthFlags;
+  const hasHealthFlag = Boolean(
+    healthFlags?.pregnant || healthFlags?.eatingDisorder || healthFlags?.medical,
+  );
+  const allowLoss = canOfferWeightLoss({
+    heightCm: Number(draft.heightCm) || 0,
+    currentWeightKg: Number(draft.currentWeightKg) || 0,
+    healthFlags,
+  });
+  const allowedOptions = goalOptions.filter((option) => {
+    if (option.id === "lose") return allowLoss;
+    if (option.id === "gain") return !hasHealthFlag;
+    return true;
+  });
   const [local, setLocal] = useState<ProfileDraft>(() => {
     const current = Number(draft.currentWeightKg) || 80;
-    const intent = draft.goalIntent ?? "lose";
+    const requested = draft.goalIntent ?? "lose";
+    const intent = allowedOptions.some((option) => option.id === requested)
+      ? requested
+      : "maintain";
     const goal = Number(draft.goalWeightKg) || 0;
     const shouldSuggest =
       goal <= 0 ||
@@ -66,7 +85,16 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
     return {
       ...draft,
       goalIntent: intent,
-      goalWeightKg: String(shouldSuggest ? suggestedGoalWeightKg(current, intent) : goal),
+      goalWeightKg: String(
+        shouldSuggest
+          ? intent === "lose"
+            ? Math.max(
+                suggestedGoalWeightKg(current, intent),
+                minimumGoalWeightKg(Number(draft.heightCm) || 0),
+              )
+            : suggestedGoalWeightKg(current, intent)
+          : goal,
+      ),
       weeklyRateKg: draft.weeklyRateKg || String(defaultRate(intent)),
     };
   });
@@ -115,8 +143,12 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
     }
   }, [local]);
 
+  const minGoalKg = minimumGoalWeightKg(Number(local.heightCm) || 0);
+  const goalBelowFloor = goalIntent === "lose" && goalWeightKg > 0 && goalWeightKg < minGoalKg;
   const isValidGoal =
     goalWeightKg > 0 &&
+    allowedOptions.some((option) => option.id === goalIntent) &&
+    !goalBelowFloor &&
     (goalIntent === "lose"
       ? goalWeightKg < currentWeightKg
       : goalIntent === "gain"
@@ -127,7 +159,8 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
   const isValid = isValidGoal && isValidRate;
 
   function setGoalIntent(nextIntent: GoalIntent) {
-    const nextGoal = suggestedGoalWeightKg(currentWeightKg, nextIntent);
+    const suggested = suggestedGoalWeightKg(currentWeightKg, nextIntent);
+    const nextGoal = nextIntent === "lose" ? Math.max(suggested, minGoalKg) : suggested;
     setCustomOpen(false);
     setLocal({
       ...local,
@@ -158,7 +191,7 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-2">
-          {goalOptions.map((option) => (
+          {allowedOptions.map((option) => (
             <button
               key={option.id}
               type="button"
@@ -195,6 +228,19 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
               autoFocus
             />
           </Field>
+          {goalBelowFloor ? (
+            <p className="mt-2 rounded-2xl border border-clay/30 bg-white/65 px-3 py-2 text-xs text-clay">
+              For your height, Pace can help you aim for {minGoalKg} kg or more. Going lower would put you
+              in the underweight range.
+            </p>
+          ) : null}
+          {!allowLoss ? (
+            <p className="mt-2 text-xs text-muted">
+              {hasHealthFlag
+                ? "Based on your health check, Pace focuses on steady habits rather than changing your weight."
+                : "You're already at a healthy lower weight for your height, so Pace won't set a weight-loss goal."}
+            </p>
+          ) : null}
         </div>
 
         {goalIntent === "lose" ? (

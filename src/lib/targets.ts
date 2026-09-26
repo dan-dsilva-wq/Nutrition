@@ -76,6 +76,39 @@ const defaultWeeklyRateKg: Record<GoalIntent, number> = {
   "build-muscle": 0,
 };
 
+/** Lowest BMI Pace will help someone aim for. Below this is clinically underweight. */
+export const MIN_GOAL_BMI = 18.5;
+
+export function bmi(weightKg: number, heightCm: number) {
+  if (!(weightKg > 0) || !(heightCm > 0)) return 0;
+  const heightM = heightCm / 100;
+  return weightKg / (heightM * heightM);
+}
+
+/** The lightest goal weight Pace allows for a given height (BMI 18.5), rounded up to 0.1 kg. */
+export function minimumGoalWeightKg(heightCm: number) {
+  if (!(heightCm > 0)) return 0;
+  const heightM = heightCm / 100;
+  return Math.ceil(MIN_GOAL_BMI * heightM * heightM * 10) / 10;
+}
+
+/**
+ * Whether Pace should offer a weight-loss goal at all. It won't when someone is
+ * already at or below a healthy minimum weight, or has told us about a health
+ * situation (pregnancy, eating disorder, clinician-managed diet) where
+ * weight-loss automation isn't appropriate.
+ */
+export function canOfferWeightLoss(input: {
+  heightCm: number;
+  currentWeightKg: number;
+  healthFlags?: { pregnant?: boolean; eatingDisorder?: boolean; medical?: boolean };
+}) {
+  const flags = input.healthFlags;
+  if (flags?.pregnant || flags?.eatingDisorder || flags?.medical) return false;
+  if (!(input.heightCm > 0) || !(input.currentWeightKg > 0)) return true;
+  return input.currentWeightKg > minimumGoalWeightKg(input.heightCm);
+}
+
 export function suggestedGoalWeightKg(currentWeightKg: number, goalIntent: GoalIntent) {
   if (goalIntent === "lose") {
     return Number((currentWeightKg * 0.95).toFixed(1));

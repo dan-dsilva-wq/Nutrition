@@ -5,6 +5,8 @@ import { Check, Pencil } from "lucide-react";
 import {
   calculateDailyTargets,
   formatWeeklyKg,
+  canOfferWeightLoss,
+  minimumGoalWeightKg,
   suggestedGoalWeightKg,
   type ActivityLevel,
   type GoalIntent,
@@ -49,8 +51,37 @@ function paceValue(weeklyWeightChangeKg: number) {
 }
 
 export function PlanScreen() {
-  const { profile, targets, draft, actions } = useAppState();
+  const { profile, targets, draft, onboardingExtras, actions } = useAppState();
   const [editing, setEditing] = useState(false);
+  const healthFlags = onboardingExtras.healthFlags;
+  const hasHealthFlag = Boolean(
+    healthFlags?.pregnant || healthFlags?.eatingDisorder || healthFlags?.medical,
+  );
+  const draftHeightCm = Number(draft.heightCm) || profile.heightCm;
+  const draftCurrentKg = Number(draft.currentWeightKg) || profile.currentWeightKg;
+  const allowLoss = canOfferWeightLoss({
+    heightCm: draftHeightCm,
+    currentWeightKg: draftCurrentKg,
+    healthFlags,
+  });
+  const allowedIntents = (Object.keys(goalIntentLabels) as GoalIntent[]).filter((intent) => {
+    if (intent === "lose") return allowLoss || draft.goalIntent === "lose";
+    if (intent === "gain") return !hasHealthFlag || draft.goalIntent === "gain";
+    return true;
+  });
+  const minGoalKg = minimumGoalWeightKg(draftHeightCm);
+  const saveBlockedReason =
+    Number(draft.age) > 0 && Number(draft.age) < 18
+      ? "Pace is for adults aged 18 and over."
+      : draft.goalIntent === "lose" && !allowLoss
+        ? hasHealthFlag
+          ? "Based on your health check, Pace won't set a weight-loss goal. Choose Maintain or Build muscle."
+          : "You're already at a healthy lower weight for your height, so Pace won't set a weight-loss goal."
+        : draft.goalIntent === "gain" && hasHealthFlag
+          ? "Based on your health check, Pace won't set a weight-gain goal. Choose Maintain or Build muscle."
+          : draft.goalIntent === "lose" && Number(draft.goalWeightKg) < minGoalKg
+            ? `For your height, set a goal weight of ${minGoalKg} kg or more.`
+            : null;
 
   const previewTargets = useMemo(() => {
     if (!editing) return targets;
@@ -75,6 +106,7 @@ export function PlanScreen() {
   }, [editing, draft, profile, targets]);
 
   function save() {
+    if (saveBlockedReason) return;
     actions.commitDraft();
     setEditing(false);
   }
@@ -85,7 +117,11 @@ export function PlanScreen() {
     actions.setDraft({
       ...draft,
       goalIntent,
-      goalWeightKg: String(suggestedGoalWeightKg(currentWeightKg, goalIntent)),
+      goalWeightKg: String(
+        goalIntent === "lose"
+          ? Math.max(suggestedGoalWeightKg(currentWeightKg, goalIntent), minGoalKg)
+          : suggestedGoalWeightKg(currentWeightKg, goalIntent),
+      ),
       weeklyRateKg:
         goalIntent === "lose" ? "0.5" : goalIntent === "gain" ? "0.25" : "0",
     });
@@ -220,9 +256,9 @@ export function PlanScreen() {
                   value={draft.goalIntent}
                   onChange={(e) => setGoalIntent(e.target.value as GoalIntent)}
                 >
-                  {Object.entries(goalIntentLabels).map(([k, v]) => (
+                  {allowedIntents.map((k) => (
                     <option key={k} value={k}>
-                      {v}
+                      {goalIntentLabels[k]}
                     </option>
                   ))}
                 </Select>
@@ -298,11 +334,16 @@ export function PlanScreen() {
             </div>
           </div>
 
+          {saveBlockedReason ? (
+            <p className="mt-4 text-sm text-clay" role="alert">
+              {saveBlockedReason}
+            </p>
+          ) : null}
           <div className="mt-4 flex gap-3">
             <Button variant="ghost" onClick={() => setEditing(false)}>
               Cancel
             </Button>
-            <Button onClick={save} fullWidth>
+            <Button onClick={save} fullWidth disabled={Boolean(saveBlockedReason)}>
               <Check size={18} aria-hidden /> Save plan
             </Button>
           </div>

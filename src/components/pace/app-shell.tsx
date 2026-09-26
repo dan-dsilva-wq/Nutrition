@@ -19,6 +19,8 @@ import {
   Undo2,
 } from "lucide-react";
 import { useAppState } from "@/lib/state/app-state";
+import { useAppSurface, useHealthSupported } from "@/lib/health";
+import { useAppleHealthSync } from "@/lib/use-apple-health-sync";
 import { Wordmark } from "./primitives";
 import { AppTour } from "./app-tour";
 import { TrialBanner } from "./trial-banner";
@@ -50,6 +52,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { auth, profile, onboardingExtras, actions } = useAppState();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  useAppleHealthSync({ autoSync: true });
+  // Android has nothing to connect yet, so the store app skips an empty
+  // Integrations page rather than showing a roadmap of "coming soon" cards.
+  const surface = useAppSurface();
+  const hasHealth = useHealthSupported();
+  const visibleDrawerItems = drawerItems.filter(
+    (item) => item.href !== "/you/integrations" || surface !== "native" || hasHealth,
+  );
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -205,7 +215,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <ul className="mt-4 px-2">
-              {drawerItems.map((item) => (
+              {visibleDrawerItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}

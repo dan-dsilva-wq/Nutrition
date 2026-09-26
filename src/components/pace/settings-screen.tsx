@@ -11,13 +11,18 @@ import {
   Home as HomeIcon,
   Plus,
   X,
+  ShieldCheck,
+  FileText,
 } from "lucide-react";
+import Link from "next/link";
+import { LEGAL, LEGAL_LINKS } from "@/lib/legal";
 import { BILLING_ENABLED } from "@/lib/billing/config";
 import { useAppState } from "@/lib/state/app-state";
 import { Button, Card, IconBadge, SectionHeader, Stat } from "./primitives";
 import { DEFAULT_PANTRY } from "./foods/shopping";
 import { trialDaysLeft } from "@/lib/entitlement";
 import { useAppVersion } from "@/lib/app-version";
+import { AppleHealthCard } from "./apple-health-card";
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -355,10 +360,61 @@ export function SettingsScreen() {
         </form>
       </Card>
 
+      <AppleHealthCard />
+
+      <Card>
+        <SectionHeader eyebrow="Privacy" title="AI features" />
+        <div className="flex items-start gap-3">
+          <IconBadge tone="forest">
+            <ShieldCheck size={16} aria-hidden />
+          </IconBadge>
+          <p className="flex-1 text-sm text-muted">
+            {onboardingExtras.aiConsentAt
+              ? "On. Meal photos and coach messages are sent to OpenAI to write estimates and replies. They are not used to train its models."
+              : "Off. Pace will ask before sending a meal photo or coach message to OpenAI."}
+          </p>
+        </div>
+        {onboardingExtras.aiConsentAt ? (
+          <div className="mt-4 flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => actions.setOnboardingExtras({ aiConsentAt: undefined })}
+            >
+              Turn off AI features
+            </Button>
+          </div>
+        ) : null}
+      </Card>
+
+      <Card>
+        <SectionHeader eyebrow="Legal" title="Health & privacy" />
+        <p className="text-sm text-muted">
+          Pace is a food diary and general wellness tool, not medical advice. Check diet changes with
+          your GP or a dietitian, and stop if you feel unwell.
+        </p>
+        <ul className="mt-4 space-y-2 text-sm">
+          <li>
+            <Link className="inline-flex items-center gap-2 text-ink-2 underline-offset-4 hover:underline" href={LEGAL_LINKS.privacy}>
+              <FileText size={14} aria-hidden /> Privacy Policy
+            </Link>
+          </li>
+          <li>
+            <Link className="inline-flex items-center gap-2 text-ink-2 underline-offset-4 hover:underline" href={LEGAL_LINKS.terms}>
+              <FileText size={14} aria-hidden /> Terms of Use
+            </Link>
+          </li>
+          <li>
+            <a className="inline-flex items-center gap-2 text-ink-2 underline-offset-4 hover:underline" href={`mailto:${LEGAL.contactEmail}?subject=Pace%20data%20request`}>
+              <FileText size={14} aria-hidden /> Request a copy of your data
+            </a>
+          </li>
+        </ul>
+      </Card>
+
       <Card>
         <SectionHeader eyebrow="Data" title="On this device" />
         <p className="text-sm text-muted">
-          Pace stores your day on this device first, so it works offline. Sign-in syncs basics across devices.
+          Pace saves your day on this device first. Signing in syncs your profile, meals, weights and check-ins to your account.
         </p>
         <div className="mt-4 flex gap-3">
           <Button variant="secondary" onClick={clearLocal}>

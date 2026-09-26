@@ -172,6 +172,8 @@ test("mobile onboarding, mocked meal estimate, and coach flow", async ({ page })
   await coachLink.click();
   await page.getByLabel("Your message").fill("I had a Costco pizza slice earlier");
   await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.getByText(/sends your message/i)).toBeVisible();
+  await page.getByRole("button", { name: "Allow AI features" }).click();
   await expect(page.getByText("Estimated at 710 calories. Add this to today?")).toBeVisible();
   await page.getByRole("button", { name: "Add to today" }).click();
   await expect(page.getByRole("button", { name: "Added" })).toBeVisible();

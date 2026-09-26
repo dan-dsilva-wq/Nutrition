@@ -15,6 +15,7 @@ import {
 } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { authorizeWithApple, nativeAppleSignInAvailable } from "@/lib/apple-sign-in";
 import { BILLING_ENABLED } from "@/lib/billing/config";
 import {
   purchaseRevenueCatSubscription,
@@ -206,6 +207,25 @@ function withoutSeedWeights(weights: WeightEntry[]) {
   return weights.filter(
     (entry) => !demoWeightSignatures.has(`${entry.date}|${entry.weightKg}`),
   );
+}
+
+/**
+ * Sign in with Apple accounts re-confirm with Apple before deletion so the
+ * server can revoke Pace's Apple grant. Cancelling still deletes the account.
+ */
+async function appleCodeForDeletion(
+  supabase: ReturnType<typeof getSupabase>,
+): Promise<string | null> {
+  if (!supabase || !nativeAppleSignInAvailable()) return null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    const usesApple = data.user?.identities?.some((identity) => identity.provider === "apple");
+    if (!usesApple) return null;
+    const apple = await authorizeWithApple();
+    return apple.authorizationCode ?? null;
+  } catch {
+    return null;
+  }
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -889,10 +909,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const deleteAccount = useCallback<AppActions["deleteAccount"]>(async () => {
+    const appleAuthorizationCode = await appleCodeForDeletion(supabase);
     try {
       const res = await fetch("/api/account/delete", {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(appleAuthorizationCode ? { appleAuthorizationCode } : {}),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));

@@ -3,6 +3,7 @@ import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/lib/supabase/server";
+import { revokeAppleAuthorization } from "@/lib/apple-revoke";
 
 export const runtime = "nodejs";
 
@@ -33,7 +34,18 @@ async function purgeUserStorage(
   }
 }
 
-export async function POST() {
+async function appleAuthorizationCodeFrom(request: Request): Promise<string | null> {
+  try {
+    const body = (await request.json()) as { appleAuthorizationCode?: unknown };
+    return typeof body.appleAuthorizationCode === "string" && body.appleAuthorizationCode
+      ? body.appleAuthorizationCode
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function POST(request: Request) {
   const server = await createSupabaseServerClient();
   if (!server) {
     return NextResponse.json(
@@ -60,6 +72,14 @@ export async function POST() {
       { error: "Server is not configured for account deletion." },
       { status: 503 },
     );
+  }
+
+  // Sign in with Apple users: revoke Pace's Apple grant too (App Review 5.1.1(v)).
+  // Best effort, since the user must still be able to delete without it.
+  const appleCode = await appleAuthorizationCodeFrom(request);
+  const hasAppleIdentity = user.identities?.some((identity) => identity.provider === "apple");
+  if (appleCode && hasAppleIdentity) {
+    await revokeAppleAuthorization(appleCode);
   }
 
   // Storage objects don't cascade with auth.users  -  purge them explicitly.

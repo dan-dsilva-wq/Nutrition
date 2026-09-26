@@ -1,6 +1,7 @@
 import { zodTextFormat } from "openai/helpers/zod";
 import { NextResponse } from "next/server";
-import { requireSignedInUser } from "@/lib/api/auth";
+import { getSignedInUser } from "@/lib/api/auth";
+import { claimUsageForUser } from "@/lib/api/usage-limits";
 import { mealEstimateInstructions } from "@/lib/ai/prompts";
 import { getOpenAIClient, openAiModel } from "@/lib/ai/openai";
 import {
@@ -71,7 +72,7 @@ async function resolveImageUrl(input: {
 }
 
 export async function POST(request: Request) {
-  const authError = await requireSignedInUser();
+  const { user, error: authError } = await getSignedInUser();
   if (authError) return authError;
 
   const client = getOpenAIClient();
@@ -97,9 +98,14 @@ export async function POST(request: Request) {
     return errorResponse(message, status);
   }
 
+  const usage = await claimUsageForUser(user?.id ?? null, "ai-photo");
+  if (!usage.allowed) return usage.response;
+
   try {
     const response = await client.responses.create({
       model: openAiModel,
+      // Don't keep user photos/messages on OpenAI's side beyond the request.
+      store: false,
       instructions: mealEstimateInstructions,
       input: [
         {
@@ -131,6 +137,7 @@ export async function POST(request: Request) {
       model: openAiModel,
     });
   } catch (error) {
+    await usage.release().catch(() => {});
     const message = error instanceof Error ? error.message : "AI meal estimate failed.";
     return errorResponse(message, 502);
   }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { BILLING_ENABLED } from "@/lib/billing/config";
 import { useAppState } from "@/lib/state/app-state";
 import { Button } from "../primitives";
+import { SubscriptionTerms } from "../subscription-terms";
 
 const perks = [
   "Unlimited photo food logging",
@@ -63,6 +64,7 @@ export function TrialOffer({ onNext }: { onNext: () => void }) {
         <Button onClick={startTrial} size="lg" fullWidth loading={busy}>
           Start free trial <ArrowRight size={18} />
         </Button>
+        <SubscriptionTerms />
         <button
           type="button"
           onClick={onNext}

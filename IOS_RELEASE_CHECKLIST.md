@@ -31,7 +31,8 @@ version `1.0` build `1`.
    connect the Apple app to RevenueCat, add the product to the `premium`
    entitlement/current offering, and set the public iOS RevenueCat SDK key in the
    Vercel production environment. Keep `NEXT_PUBLIC_BILLING_ENABLED=false` until
-   the product and webhook have been tested in sandbox.
+   the product and webhook have been tested in sandbox. Follow the iOS section of
+   [docs/billing-launch-checklist.md](./docs/billing-launch-checklist.md).
 
 ## Install directly on your own iPhone
 
@@ -74,11 +75,10 @@ test information and may require Apple's beta review.
 - Test camera, photo-library selection, meal analysis, barcode scanning, and
   reminders on a physical iPhone.
 - Test purchase and restore purchase with an Apple sandbox tester if billing is on.
-- Add a Privacy Policy URL using
-  `https://pace-nutrition.vercel.app/privacypolicy.html` and provide a support URL.
-- Complete App Privacy answers for account/profile data, health/fitness and food
-  logs, photos, identifiers, diagnostics, and purchase information based on the
-  production services actually enabled.
+- Add the Privacy Policy URL `https://pace-nutrition.vercel.app/privacy`, the
+  Terms URL `https://pace-nutrition.vercel.app/terms`, and a support URL.
+- Complete App Privacy answers using `docs/app-store-privacy.md`, which also
+  lists the open legal decisions and the compliance paragraph for review notes.
 - Provide App Review with a working demo account and clear notes explaining the
   camera, AI meal estimate, account deletion, and subscription flow.
 - Upload current iPhone screenshots and complete age rating, category, copyright,
