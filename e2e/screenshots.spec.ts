@@ -3,14 +3,13 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Captures Play Store / marketing screenshots at the three viewport sizes
- * Google asks for: phone (1080x1920), 7" tablet (1200x1920), 10" tablet
- * (1600x2560). Each screen is captured at every size into screenshots/<size>/
+ * Captures QA views at Play Store and App Store sizes. These seeded demo views
+ * are not approved store screenshots. Each screen lands in <output>/<size>/.
  *
  * Run with:  npx playwright test e2e/screenshots.spec.ts --project=screenshot
  */
 
-const OUT_DIR = "screenshots";
+const OUT_DIR = process.env.PACE_SCREENSHOT_OUTPUT_DIR ?? "screenshots";
 
 /**
  * Each entry's CSS viewport × deviceScaleFactor must equal the output PNG
@@ -21,11 +20,15 @@ const OUT_DIR = "screenshots";
  *   phone     360 ×  640  ×  DPR 3  →  1080 × 1920  (9:16, Play phone slot)
  *   tablet 7"  600 ×  960  ×  DPR 2  →  1200 × 1920  (9:16, Play 7" slot)
  *   tablet 10" 800 × 1280  ×  DPR 2  →  1600 × 2560  (9:16, Play 10" slot)
+ *   iPhone 6.9" 430 ×  932  ×  DPR 3  →  1290 × 2796  (App Store)
+ *   iPad 13"   1032 × 1376  ×  DPR 2  →  2064 × 2752  (App Store)
  */
 const SIZES = [
   { name: "phone-1080x1920", width: 360, height: 640, scale: 3, isMobile: true },
   { name: "tablet-7in-1200x1920", width: 600, height: 960, scale: 2, isMobile: false },
   { name: "tablet-10in-1600x2560", width: 800, height: 1280, scale: 2, isMobile: false },
+  { name: "app-store-iphone-6.9in-1290x2796", width: 430, height: 932, scale: 3, isMobile: true },
+  { name: "app-store-ipad-13in-2064x2752", width: 1032, height: 1376, scale: 2, isMobile: false },
 ] as const;
 
 /**
@@ -60,28 +63,26 @@ const SCREENS: Array<{
     slug: "04-plan",
     navigate: async (page) => {
       await page.getByRole("button", { name: "Open menu" }).click();
-      await page.getByRole("link", { name: "Plan & targets" }).click();
+      await page.getByRole("link", { name: "You & targets" }).click();
     },
   },
   {
     slug: "05-coach",
     navigate: async (page) => {
-      await page.getByRole("button", { name: "Open menu" }).click();
-      await page.getByRole("link", { name: "Coach" }).click();
+      await page.getByRole("link", { name: "Coach" }).first().click();
     },
   },
   {
     slug: "06-foods",
     navigate: async (page) => {
-      await page.getByRole("button", { name: "Open menu" }).click();
-      await page.getByRole("link", { name: "Food guide" }).click();
+      await page.getByRole("link", { name: "Food" }).first().click();
     },
   },
   {
-    slug: "07-workouts",
+    slug: "07-reminders",
     navigate: async (page) => {
       await page.getByRole("button", { name: "Open menu" }).click();
-      await page.getByRole("link", { name: "Workouts" }).click();
+      await page.getByRole("link", { name: "Reminders" }).click();
     },
   },
   {
@@ -102,6 +103,10 @@ const seededState = {
     dietaryPreferences: [],
     commitments: { steps: true, water: true, nutrition: true },
     hasSeenTour: true,
+    hasSeenFoodIntro: true,
+    hasSeenWeekIntro: true,
+    weekGenerated: true,
+    weekPlanSeed: 0,
   },
 };
 
@@ -110,6 +115,7 @@ for (const size of SIZES) {
   // soft client-side navigation. Much faster than tearing down per screen, and
   // dodges the AuthGate first-render redirect on deep links.
   test(`${size.name} · all screens`, async ({ browser }) => {
+    test.setTimeout(90_000);
     const context = await browser.newContext({
       viewport: { width: size.width, height: size.height },
       deviceScaleFactor: size.scale,
@@ -136,6 +142,7 @@ for (const size of SIZES) {
     // Warm up on Today so AuthGate sees the hydrated hasOnboarded=true and
     // the rest of the in-app navigation behaves like it would for a real user.
     await page.goto("/today?demo=1");
+    await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
     await page.getByRole("heading", { name: "Today", exact: true }).waitFor();
     await page.waitForTimeout(400);
 
@@ -143,16 +150,8 @@ for (const size of SIZES) {
     mkdirSync(dir, { recursive: true });
 
     for (const screen of SCREENS) {
-      try {
-        await screen.navigate(page);
-      } catch (err) {
-        // Some routes may not exist or may be reached differently  -  log and
-        // skip rather than fail the whole capture run.
-        console.warn(`[${size.name}] could not navigate to ${screen.slug}:`, err);
-        continue;
-      }
+      await screen.navigate(page);
       // Wait for any nav animation / route transition.
-      await page.waitForLoadState("networkidle").catch(() => undefined);
       await page.waitForTimeout(500);
 
       await page.screenshot({
