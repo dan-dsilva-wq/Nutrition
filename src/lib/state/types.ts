@@ -171,6 +171,18 @@ export interface OnboardingExtras {
   weeksAhead?: number;
   /** Meal-photo reminder schedule. Master on/off lives on `reminderState`. */
   photoReminders?: PhotoReminderConfig;
+  /** Answers from the onboarding health check. Any true flag turns off weight-loss goals. */
+  healthFlags?: HealthFlags;
+  /** ISO time the user agreed to the Terms, Privacy Policy and health-data processing. */
+  legalAcceptedAt?: string;
+  /** ISO time the user allowed meal photos and coach messages to be sent to the AI provider. Unset = not allowed. */
+  aiConsentAt?: string;
+}
+
+export interface HealthFlags {
+  pregnant: boolean;
+  eatingDisorder: boolean;
+  medical: boolean;
 }
 
 export interface PhotoReminderConfig {
