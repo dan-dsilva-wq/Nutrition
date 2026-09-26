@@ -61,7 +61,7 @@ How the pieces fit together:
 1. Add the Google Play subscription product/base plan/offer in RevenueCat.
 2. Attach it to the `premium` entitlement and to the current offering.
 3. Copy the RevenueCat Google public SDK key (starts with `goog_`) into
-   `NEXT_PUBLIC_REVENUECAT_PUBLIC_API_KEY`.
+   `NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY`.
 
 ## iOS App Store
 
@@ -139,19 +139,22 @@ Set these in Vercel (Production for launch, Preview for the sandbox deployment
 below) and redeploy:
 
 ```env
-NEXT_PUBLIC_REVENUECAT_PUBLIC_API_KEY=appl_xxxxxxxxxxxxxxxx
+NEXT_PUBLIC_REVENUECAT_IOS_API_KEY=appl_xxxxxxxxxxxxxxxx
 NEXT_PUBLIC_REVENUECAT_ENTITLEMENT_ID=premium
 NEXT_PUBLIC_REVENUECAT_OFFERING_ID=
 REVENUECAT_WEBHOOK_AUTHORIZATION=Bearer <secret from Webhook setup>
 SUPABASE_SERVICE_ROLE_KEY=<already set>
 ```
 
-**One key for both stores:** the code reads a single
-`NEXT_PUBLIC_REVENUECAT_PUBLIC_API_KEY` and both native apps load the same site.
-RevenueCat keys are per store (`appl_` vs `goog_`), so only one store can have
-working purchases until the client picks the key by platform. Launch iOS with the
-`appl_` key, and do not turn billing on for Android users in the same deployment
-until that code change lands.
+**Per-store keys:** RevenueCat keys are per store (`appl_` vs `goog_`) and both
+native apps load the same site, so each platform reads its own variable
+(`NEXT_PUBLIC_REVENUECAT_IOS_API_KEY`, `NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY`).
+The older `NEXT_PUBLIC_REVENUECAT_PUBLIC_API_KEY` is used for any platform whose
+own key is empty.
+
+Optional paywall links: `NEXT_PUBLIC_TERMS_OF_USE_URL` (defaults to Apple's
+standard EULA on iOS) and `NEXT_PUBLIC_PRIVACY_POLICY_URL` (defaults to
+`https://pace-nutrition.vercel.app/privacypolicy.html`).
 
 ## Sandbox deployment
 
@@ -212,10 +215,12 @@ trial to real billing. Test on a separate deployment first.
 - The first subscription is selected on the app version (iOS step 2.7).
 - Apple Guideline 3.1.2 requires the paywall to show the price, billing period,
   what happens after the free trial, and working links to the Terms of Use (EULA)
-  and Privacy Policy. The current paywall sheet and onboarding trial offer show
-  none of these, so add them before review. Using Apple's standard EULA is fine;
-  add `https://www.apple.com/legal/internet-services/itunes/dev/stdeula/` (or your
-  own terms) to the app description and link it from the paywall.
+  and Privacy Policy. With billing on, the paywall sheet, locked cards and
+  onboarding trial offer show these under the subscribe button. In the sandbox
+  build, confirm the price line appears (e.g. "7-day free trial, then £4.99 per
+  month.") and both links open. Also add the Terms of Use link to the App Store
+  description (App Store Connect > the version > Description, or the EULA field
+  in App Information).
 - App Privacy answers include Purchases.
 - The review notes explain the 1-week free trial and the demo account can reach
   the paywall.
@@ -224,8 +229,9 @@ trial to real billing. Test on a separate deployment first.
 
 Only after the store product, sandbox purchase and webhook are confirmed:
 
-1. In Vercel Production, confirm `NEXT_PUBLIC_REVENUECAT_PUBLIC_API_KEY` is the
-   store key you are launching (the `appl_` key for iOS),
+1. In Vercel Production, confirm `NEXT_PUBLIC_REVENUECAT_IOS_API_KEY` is the
+   `appl_` key (and `NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY` the `goog_` key if
+   Android is launching too),
    `REVENUECAT_WEBHOOK_AUTHORIZATION` matches the production RevenueCat webhook,
    and `SUPABASE_SERVICE_ROLE_KEY` is set.
 2. Set:
