@@ -7,6 +7,12 @@ const allowedDevOrigins =
 
 const nextConfig: NextConfig = {
   ...(allowedDevOrigins.length ? { allowedDevOrigins } : {}),
+  async redirects() {
+    return [
+      // Old static policy URL, already given to Google Play and Health Connect.
+      { source: "/privacypolicy.html", destination: "/privacy", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

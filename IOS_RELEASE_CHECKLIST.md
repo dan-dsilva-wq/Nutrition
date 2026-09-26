@@ -74,11 +74,10 @@ test information and may require Apple's beta review.
 - Test camera, photo-library selection, meal analysis, barcode scanning, and
   reminders on a physical iPhone.
 - Test purchase and restore purchase with an Apple sandbox tester if billing is on.
-- Add a Privacy Policy URL using
-  `https://pace-nutrition.vercel.app/privacypolicy.html` and provide a support URL.
-- Complete App Privacy answers for account/profile data, health/fitness and food
-  logs, photos, identifiers, diagnostics, and purchase information based on the
-  production services actually enabled.
+- Add the Privacy Policy URL `https://pace-nutrition.vercel.app/privacy`, the
+  Terms URL `https://pace-nutrition.vercel.app/terms`, and a support URL.
+- Complete App Privacy answers using `docs/app-store-privacy.md`, which also
+  lists the open legal decisions and the compliance paragraph for review notes.
 - Provide App Review with a working demo account and clear notes explaining the
   camera, AI meal estimate, account deletion, and subscription flow.
 - Upload current iPhone screenshots and complete age rating, category, copyright,

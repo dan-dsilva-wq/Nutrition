@@ -5,6 +5,7 @@ import { Capacitor } from "@capacitor/core";
 import { Mail, ArrowRight, UserPlus } from "lucide-react";
 import { Button, Field, Input, Wordmark } from "./primitives";
 import { getSupabase } from "@/lib/state/app-state";
+import { LEGAL_LINKS } from "@/lib/legal";
 
 const NATIVE_REDIRECT = "com.danieldsilva.pace://auth/callback";
 
@@ -175,7 +176,18 @@ export function AuthScreen() {
           {mode === "sign-in" ? "Need an account? Sign up." : "Have an account? Sign in."}
         </button>
 
-        <p className="fade-anim mt-auto py-8 text-center text-xs text-faint">
+        <p className="fade-anim mt-auto pt-8 pb-2 text-center text-xs text-faint">
+          By continuing you agree to our{" "}
+          <a className="underline underline-offset-4" href={LEGAL_LINKS.terms}>
+            Terms
+          </a>{" "}
+          and{" "}
+          <a className="underline underline-offset-4" href={LEGAL_LINKS.privacy}>
+            Privacy Policy
+          </a>
+          .
+        </p>
+        <p className="fade-anim pb-8 text-center text-xs text-faint">
           For adults 18+. Pace is a food-logging tool, not medical advice.
         </p>
       </div>

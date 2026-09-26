@@ -14,6 +14,7 @@ import {
 import { useEntitlement } from "@/lib/entitlement";
 import { PaywallSheet } from "./paywall-sheet";
 import { trackTesterEvent } from "@/lib/tester/track";
+import { useAiConsent } from "./ai-consent-sheet";
 
 const COACH_MEMORY_LIMIT = 5;
 
@@ -37,6 +38,7 @@ export function CoachScreen() {
   const [addedDrafts, setAddedDrafts] = useState<Set<number>>(() => new Set());
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const verdict = useEntitlement("coach-unlimited");
+  const aiConsent = useAiConsent("coach");
 
   const profileSummary = useMemo(
     () =>
@@ -65,7 +67,10 @@ export function CoachScreen() {
       setPaywallOpen(true);
       return;
     }
+    aiConsent.withConsent(() => void sendToCoach(message));
+  }
 
+  async function sendToCoach(message: string) {
     actions.appendChat({ role: "user", content: message });
     trackTesterEvent("coach_message_sent", { length: message.length });
     setInput("");
@@ -123,6 +128,9 @@ export function CoachScreen() {
         </h1>
         <p className="mt-1 text-sm text-muted">
           Calm, practical answers. Ask anything about your day, your meals, or your plan.
+        </p>
+        <p className="mt-1 text-xs text-faint">
+          Replies are written by AI and can be wrong. General wellness info, not medical advice.
         </p>
       </header>
 
@@ -193,6 +201,7 @@ export function CoachScreen() {
         onClose={() => setPaywallOpen(false)}
         feature="coach-unlimited"
       />
+      {aiConsent.sheet}
     </div>
   );
 }
