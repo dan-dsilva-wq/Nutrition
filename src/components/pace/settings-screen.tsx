@@ -18,6 +18,7 @@ import { Button, Card, IconBadge, SectionHeader, Stat } from "./primitives";
 import { DEFAULT_PANTRY } from "./foods/shopping";
 import { trialDaysLeft } from "@/lib/entitlement";
 import { useAppVersion } from "@/lib/app-version";
+import { AppleHealthCard } from "./apple-health-card";
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -355,10 +356,12 @@ export function SettingsScreen() {
         </form>
       </Card>
 
+      <AppleHealthCard />
+
       <Card>
         <SectionHeader eyebrow="Data" title="On this device" />
         <p className="text-sm text-muted">
-          Pace stores your day on this device first, so it works offline. Sign-in syncs basics across devices.
+          Pace saves your day on this device first, then syncs the basics to your account when you&apos;re signed in.
         </p>
         <div className="mt-4 flex gap-3">
           <Button variant="secondary" onClick={clearLocal}>

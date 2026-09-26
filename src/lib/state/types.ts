@@ -171,6 +171,16 @@ export interface OnboardingExtras {
   weeksAhead?: number;
   /** Meal-photo reminder schedule. Master on/off lives on `reminderState`. */
   photoReminders?: PhotoReminderConfig;
+  /** Apple Health (iOS app only). Pace reads steps and today's weight; it never writes. */
+  appleHealth?: AppleHealthSettings;
+}
+
+export interface AppleHealthSettings {
+  enabled: boolean;
+  /** When the last Health read ran, for the "Synced 2 min ago" label. */
+  lastSyncedAtIso?: string;
+  /** Timestamp of the last Health weight sample imported, so each one is logged once. */
+  lastWeightSampleIso?: string;
 }
 
 export interface PhotoReminderConfig {
