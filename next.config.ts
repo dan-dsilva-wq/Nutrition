@@ -5,6 +5,29 @@ const allowedDevOrigins =
     .map((origin) => origin.trim())
     .filter(Boolean) ?? [];
 
+const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(self), microphone=(), geolocation=(), payment=(), usb=()",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+] as const;
+
 const nextConfig: NextConfig = {
   ...(allowedDevOrigins.length ? { allowedDevOrigins } : {}),
   async redirects() {
@@ -21,16 +44,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/(.*)",
-        headers: [
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-        ],
+        headers: [...securityHeaders],
       },
     ];
   },
