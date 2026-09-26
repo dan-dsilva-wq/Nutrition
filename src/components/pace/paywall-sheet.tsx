@@ -11,6 +11,7 @@ import {
   type Feature,
 } from "@/lib/entitlement";
 import { Button, Sheet } from "./primitives";
+import { SubscriptionTerms } from "./subscription-terms";
 
 const premiumPerks = [
   "Unlimited photo food logging",
@@ -96,6 +97,9 @@ export function PaywallSheet({
             </Button>
           ) : null}
           {notice ? <p className="text-center text-xs text-muted">{notice}</p> : null}
+          {subscription.status === "none" || isExpired ? (
+            <SubscriptionTerms className="pt-1" />
+          ) : null}
           <button
             type="button"
             onClick={onClose}
@@ -168,6 +172,7 @@ function LockedCard({
               ? "Start free trial"
               : "Start free 7-day trial"}
         </Button>
+        <SubscriptionTerms className="mt-4" />
       </div>
 
       <ul className="space-y-2">

@@ -31,7 +31,8 @@ version `1.0` build `1`.
    connect the Apple app to RevenueCat, add the product to the `premium`
    entitlement/current offering, and set the public iOS RevenueCat SDK key in the
    Vercel production environment. Keep `NEXT_PUBLIC_BILLING_ENABLED=false` until
-   the product and webhook have been tested in sandbox.
+   the product and webhook have been tested in sandbox. Follow the iOS section of
+   [docs/billing-launch-checklist.md](./docs/billing-launch-checklist.md).
 
 ## Install directly on your own iPhone
 
