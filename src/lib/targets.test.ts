@@ -3,7 +3,10 @@ import {
   calculateDailyTargets,
   calculateStepTarget,
   calculateWaterTargetMl,
+  canOfferWeightLoss,
   checkProfileGuardrails,
+  formatWeeklyKg,
+  minimumGoalWeightKg,
   resolveGoalIntent,
   suggestedGoalWeightKg,
 } from "./targets";
@@ -99,5 +102,33 @@ describe("target calculations", () => {
     expect(resolveGoalIntent({ currentWeightKg: 72, goalWeightKg: 72 })).toBe("maintain");
     expect(resolveGoalIntent({ currentWeightKg: 67, goalWeightKg: 72 })).toBe("gain");
     expect(suggestedGoalWeightKg(67, "lose")).toBe(63.6);
+  });
+
+  it("formats weekly change the way the pace was picked", () => {
+    expect(formatWeeklyKg(-0.49)).toBe("0.5");
+    expect(formatWeeklyKg(-0.24)).toBe("0.25");
+    expect(formatWeeklyKg(0.74)).toBe("0.75");
+    expect(formatWeeklyKg(0)).toBe("0");
+  });
+});
+
+describe("weight-loss safety floor", () => {
+  it("sets the minimum goal weight at BMI 18.5", () => {
+    expect(minimumGoalWeightKg(170)).toBe(53.5);
+    expect(minimumGoalWeightKg(0)).toBe(0);
+  });
+
+  it("stops offering weight loss at or below the floor", () => {
+    expect(canOfferWeightLoss({ heightCm: 170, currentWeightKg: 80 })).toBe(true);
+    expect(canOfferWeightLoss({ heightCm: 170, currentWeightKg: 53 })).toBe(false);
+  });
+
+  it("stops offering weight loss when a health flag is set", () => {
+    expect(
+      canOfferWeightLoss({ heightCm: 170, currentWeightKg: 80, healthFlags: { pregnant: true } }),
+    ).toBe(false);
+    expect(
+      canOfferWeightLoss({ heightCm: 170, currentWeightKg: 80, healthFlags: { eatingDisorder: true } }),
+    ).toBe(false);
   });
 });

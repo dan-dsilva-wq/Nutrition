@@ -9,6 +9,7 @@ import {
   ChevronUp,
   Image as ImageIcon,
   Loader2,
+  RotateCcw,
   Search,
   ScanBarcode,
   Trash2,
@@ -33,6 +34,7 @@ import {
 import { clsx } from "clsx";
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
 import { useEntitlement } from "@/lib/entitlement";
+import { useAiConsent } from "./ai-consent-sheet";
 import { PaywallSheet } from "./paywall-sheet";
 import { Capacitor } from "@capacitor/core";
 import { Camera as NativeCamera } from "@capacitor/camera";
@@ -109,7 +111,7 @@ export function LogScreen() {
             data-tap
             onClick={() => setTab(t.id)}
             className={clsx(
-              "flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition",
+              "flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-2 py-2 text-sm font-medium transition",
               tab === t.id
                 ? "bg-white/85 text-ink-2 shadow-sm border border-white/70"
                 : "text-muted hover:text-ink",
@@ -191,8 +193,12 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<"ai" | "demo" | null>(null);
   const [paywallOpen, setPaywallOpen] = useState(false);
-  const { actions } = useAppState();
+  const { actions, auth } = useAppState();
   const verdict = useEntitlement("ai-photo-unlimited");
+  // Only demo sessions get the example estimate when the AI can't answer.
+  // A real user must never be shown a made-up meal for their own photo.
+  const allowExampleEstimate = auth.kind === "demo";
+  const aiConsent = useAiConsent("meal-photo");
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -262,21 +268,36 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
         actions.bumpUsage("ai-photo");
         setEstimate(json.estimate as MealEstimate);
         setSource("ai");
-      } else if (res.status === 503) {
+      } else if (res.status === 402) {
+        // Server says the free daily quota is used up.
+        const json = await res.json().catch(() => ({}));
+        setError(json.error ?? "You've used today's free photo estimates.");
+        setPaywallOpen(true);
+      } else if (res.status === 503 && allowExampleEstimate) {
         // No OPENAI_API_KEY → demo fallback so the flow stays usable
         setEstimate(demoEstimate());
         setSource("demo");
       } else {
         const json = await res.json().catch(() => ({}));
-        setError(json.error ?? "We couldn't read that photo. Try a clearer shot or type the food.");
-        setEstimate(demoEstimate());
-        setSource("demo");
+        setError(
+          res.status === 503
+            ? "Photo estimates are unavailable right now. Try again in a moment, or type the food."
+            : json.error ?? "We couldn't read that photo. Try a clearer shot or type the food.",
+        );
+        if (allowExampleEstimate) {
+          setEstimate(demoEstimate());
+          setSource("demo");
+        }
       }
     } catch {
       if (runId !== estimateRunRef.current) return;
-      setError("No connection. Showing an example you can edit.");
-      setEstimate(demoEstimate());
-      setSource("demo");
+      if (allowExampleEstimate) {
+        setError("No connection. Showing an example you can edit.");
+        setEstimate(demoEstimate());
+        setSource("demo");
+      } else {
+        setError("No connection. Check your internet and try again, or type the food.");
+      }
     } finally {
       if (runId === estimateRunRef.current) setBusy(false);
     }
@@ -325,12 +346,12 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
             className="hidden"
             onChange={handleFile}
           />
-          <Button size="lg" className="mt-6" onClick={() => openCapture("camera")}>
+          <Button size="lg" className="mt-6" onClick={() => aiConsent.withConsent(() => void openCapture("camera"))}>
             <Camera size={18} /> Open camera
           </Button>
           <button
             type="button"
-            onClick={() => openCapture("library")}
+            onClick={() => aiConsent.withConsent(() => void openCapture("library"))}
             className="mt-3 text-sm text-muted underline-offset-4 hover:underline"
           >
             Or upload from photos
@@ -363,14 +384,38 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="font-display text-xl text-ink-2">
-                {busy ? "Estimating your meal…" : "Photo ready"}
-              </h2>
-              <p className="mt-1 text-sm text-muted">
                 {busy
-                  ? "This usually takes 5–10 seconds. Hang tight."
-                  : "Review the result once it appears."}
-              </p>
-              {error ? <p className="mt-1 text-sm text-clay">{error}</p> : null}
+                  ? "Estimating your meal…"
+                  : error
+                    ? "Couldn't estimate this one"
+                    : "Photo ready"}
+              </h2>
+              {error && !busy ? (
+                <p role="alert" className="mt-1 text-sm text-clay">{error}</p>
+              ) : (
+                <p className="mt-1 text-sm text-muted">
+                  {busy
+                    ? "This usually takes 5–10 seconds. Hang tight."
+                    : "Review the result once it appears."}
+                </p>
+              )}
+              {error && !busy ? (
+                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <Button size="sm" onClick={() => void runEstimate()}>
+                    <RotateCcw size={14} aria-hidden /> Try again
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      discard();
+                      onTypeFood();
+                    }}
+                    className="text-sm font-medium text-forest underline-offset-4 hover:underline"
+                  >
+                    Type food instead
+                  </button>
+                </div>
+              ) : null}
             </div>
             <button
               type="button"
@@ -397,6 +442,7 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
         onClose={() => setPaywallOpen(false)}
         feature="ai-photo-unlimited"
       />
+      {aiConsent.sheet}
     </div>
   );
 }
@@ -486,7 +532,7 @@ function EstimateEditor({
           <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
             {source === "demo"
               ? "Demo estimate"
-              : `Confidence ${getMealConfidenceLabel(estimate.confidence)}`}
+              : `AI estimate · Confidence ${getMealConfidenceLabel(estimate.confidence)}`}
           </div>
           <h3 className="font-display text-xl text-ink-2">{headline}</h3>
         </div>
@@ -503,19 +549,20 @@ function EstimateEditor({
 
       {/* Headline totals */}
       <div className="mt-3 rounded-2xl border border-white/70 bg-white/60 p-4 backdrop-blur-xl">
-        <div className="flex items-baseline justify-between gap-3">
-          <label className="flex items-baseline gap-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <label className="flex items-baseline gap-1.5">
             <input
               type="number"
               inputMode="decimal"
               value={Math.round(estimate.totals.calories)}
               onChange={(e) => updateTotalCalories(Number(e.target.value) || 0)}
               aria-label="Total calories"
-              className="numerals w-24 bg-transparent text-3xl text-ink-2 outline-none"
+              className="numerals bg-transparent text-3xl text-ink-2 outline-none"
+              style={{ width: `${Math.max(String(Math.round(estimate.totals.calories)).length, 2) + 0.5}ch` }}
             />
             <span className="text-sm text-muted">kcal</span>
           </label>
-          <span className="text-sm text-muted">
+          <span className="whitespace-nowrap text-sm text-muted">
             {Math.round(estimate.totals.proteinG)}g P · {Math.round(estimate.totals.carbsG)}g C · {Math.round(estimate.totals.fatG)}g F
           </span>
         </div>
@@ -1096,7 +1143,11 @@ function SearchFlow() {
         </ul>
       ) : hasSearched && query.trim().length >= 2 && !busy ? (
         <div className="mt-4 space-y-3">
-          <EmptyState title="No matches" body="Try a simpler word, or create a custom food." />
+          {/* The error above already explains a failed search; only claim
+              "no matches" when the search actually ran. */}
+          {error ? null : (
+            <EmptyState title="No matches" body="Try a simpler word, or create a custom food." />
+          )}
           <Button variant="secondary" fullWidth onClick={openCustom}>
             Create custom food
           </Button>
@@ -1254,7 +1305,9 @@ function BarcodeFlow() {
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && lookup()}
         />
-        <Button onClick={() => void lookup()} loading={busy}>Look up</Button>
+        <Button onClick={() => void lookup()} loading={busy} className="shrink-0 whitespace-nowrap">
+          Look up
+        </Button>
       </div>
       {error ? <p className="mt-2 text-sm text-clay">{error}</p> : null}
     </Card>

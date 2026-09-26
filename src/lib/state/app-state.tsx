@@ -15,6 +15,7 @@ import {
 } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { authorizeWithApple, nativeAppleSignInAvailable } from "@/lib/apple-sign-in";
 import { BILLING_ENABLED } from "@/lib/billing/config";
 import {
   purchaseRevenueCatSubscription,
@@ -208,6 +209,25 @@ function withoutSeedWeights(weights: WeightEntry[]) {
   );
 }
 
+/**
+ * Sign in with Apple accounts re-confirm with Apple before deletion so the
+ * server can revoke Pace's Apple grant. Cancelling still deletes the account.
+ */
+async function appleCodeForDeletion(
+  supabase: ReturnType<typeof getSupabase>,
+): Promise<string | null> {
+  if (!supabase || !nativeAppleSignInAvailable()) return null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    const usesApple = data.user?.identities?.some((identity) => identity.provider === "apple");
+    if (!usesApple) return null;
+    const apple = await authorizeWithApple();
+    return apple.authorizationCode ?? null;
+  } catch {
+    return null;
+  }
+}
+
 const AppContext = createContext<AppContextValue | null>(null);
 
 interface PersistedShape {
@@ -328,7 +348,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [storageScope, setStorageScope] = useState<string | null>(
     supabase ? null : DEMO_SCOPE,
   );
-  const [hasHydrated, setHasHydrated] = useState<boolean>(false);
+  // Which storage scope the in-memory state was last hydrated from. Deriving
+  // `hasHydrated` from it (rather than a separate boolean) means a scope change
+  // reads as "not hydrated" in the same render, before the hydrate effect runs.
+  const [hydratedScope, setHydratedScope] = useState<string | null>(null);
+  const hasHydrated = storageScope !== null && hydratedScope === storageScope;
 
   const [isHydrating, setIsHydrating] = useState<boolean>(Boolean(supabase));
   const [hasOnboarded, setHasOnboarded] = useState<boolean>(false);
@@ -367,6 +391,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [onboardingExtras, setOnboardingExtrasState] =
     useState<OnboardingExtras>(defaultOnboardingExtras);
   const [notice, setNotice] = useState<string | null>(null);
+  const [removedMeal, setRemovedMeal] = useState<{ meal: MealLog; index: number } | null>(null);
   const [lastCoachResponse, setLastCoachResponse] = useState<CoachResponse | null>(null);
 
   const dayKeyRef = useRef<string>(todayDayKey());
@@ -400,7 +425,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!storageScope) return;
 
-    setHasHydrated(false);
+    setHydratedScope(null);
 
     // Reset to defaults before reading from this scope's blob.
     setProfile(demoProfile);
@@ -432,6 +457,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setHasOnboarded(false);
     setSubscriptionState(defaultSubscription);
     setOnboardingExtrasState(defaultOnboardingExtras);
+    setRemovedMeal(null);
 
     if (storageScope === GUEST_SCOPE || storageScope === DEMO_SCOPE) {
       // Don't let unscoped legacy data leak into a signed-out / demo session.
@@ -443,7 +469,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     const persisted = loadPersisted(storageScope);
     if (!persisted) {
-      setHasHydrated(true);
+      setHydratedScope(storageScope);
       return;
     }
 
@@ -501,7 +527,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
 
     dayKeyRef.current = today;
-    setHasHydrated(true);
+    setHydratedScope(storageScope);
   }, [storageScope]);
 
   // Persist on changes  -  only after hydration into the current scope is
@@ -786,8 +812,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const mealsRef = useRef(meals);
+  useEffect(() => {
+    mealsRef.current = meals;
+  }, [meals]);
+
   const removeMeal = useCallback<AppActions["removeMeal"]>((id) => {
+    const index = mealsRef.current.findIndex((m) => m.id === id);
+    if (index >= 0) setRemovedMeal({ meal: mealsRef.current[index], index });
     setMeals((prev) => prev.filter((m) => m.id !== id));
+  }, []);
+
+  const undoRemoveMeal = useCallback<AppActions["undoRemoveMeal"]>(() => {
+    if (!removedMeal) return;
+    setMeals((prev) => {
+      if (prev.some((m) => m.id === removedMeal.meal.id)) return prev;
+      const next = [...prev];
+      next.splice(Math.min(removedMeal.index, next.length), 0, removedMeal.meal);
+      return next;
+    });
+    setRemovedMeal(null);
+  }, [removedMeal]);
+
+  const dismissRemovedMeal = useCallback<AppActions["dismissRemovedMeal"]>(() => {
+    setRemovedMeal(null);
   }, []);
 
   const addWater = useCallback<AppActions["addWater"]>((ml) => {
@@ -861,10 +909,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [supabase]);
 
   const deleteAccount = useCallback<AppActions["deleteAccount"]>(async () => {
+    const appleAuthorizationCode = await appleCodeForDeletion(supabase);
     try {
       const res = await fetch("/api/account/delete", {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(appleAuthorizationCode ? { appleAuthorizationCode } : {}),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -1041,6 +1092,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addMealFromEstimate,
       updateMeal,
       removeMeal,
+      undoRemoveMeal,
+      dismissRemovedMeal,
       addWater,
       setWater,
       setSteps,
@@ -1072,6 +1125,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addMealFromEstimate,
       updateMeal,
       removeMeal,
+      undoRemoveMeal,
+      dismissRemovedMeal,
       addWater,
       setWater,
       setSteps,
@@ -1099,7 +1154,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(
     () => ({
       auth,
-      isHydrating,
+      isHydrating: isHydrating || !hasHydrated,
       hasOnboarded,
       profile,
       draft,
@@ -1116,6 +1171,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       subscription,
       onboardingExtras,
       notice,
+      recentlyRemovedMeal: removedMeal?.meal ?? null,
       actions,
       lastCoachResponse,
       setLastCoachResponse,
@@ -1123,6 +1179,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [
       auth,
       isHydrating,
+      hasHydrated,
       hasOnboarded,
       profile,
       draft,
@@ -1139,6 +1196,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       subscription,
       onboardingExtras,
       notice,
+      removedMeal,
       actions,
       lastCoachResponse,
     ],

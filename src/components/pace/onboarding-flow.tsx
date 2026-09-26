@@ -8,6 +8,7 @@ import { Wordmark } from "./primitives";
 import { WelcomeStep } from "./onboarding/welcome-step";
 import { NameStep } from "./onboarding/name-step";
 import { BodyStep } from "./onboarding/body-step";
+import { HealthStep } from "./onboarding/health-step";
 import { GoalStep } from "./onboarding/goal-step";
 import { ActivityStep } from "./onboarding/activity-step";
 import { RoutineStep } from "./onboarding/routine-step";
@@ -19,28 +20,29 @@ import { HabitPillars } from "./onboarding/habit-pillars";
 import { FeatureTour } from "./onboarding/feature-tour";
 import { TrialOffer } from "./onboarding/trial-offer";
 
-const STORAGE_KEY = "pace.onboarding.step.v1";
+const STORAGE_KEY = "pace.onboarding.step.v2";
 
 const Step = {
   WELCOME: 0,
   NAME: 1,
   BODY: 2,
-  GOAL: 3,
-  ACTIVITY: 4,
-  ROUTINE: 5,
-  DIET: 6,
-  MOTIVATION: 7,
-  CALCULATING: 8,
-  REVEAL: 9,
-  PILLARS: 10,
-  TOUR: 11,
-  TRIAL: 12,
+  HEALTH: 3,
+  GOAL: 4,
+  ACTIVITY: 5,
+  ROUTINE: 6,
+  DIET: 7,
+  MOTIVATION: 8,
+  CALCULATING: 9,
+  REVEAL: 10,
+  PILLARS: 11,
+  TOUR: 12,
+  TRIAL: 13,
 } as const;
 
-const TOTAL = 13;
+const TOTAL = 14;
 
 export function OnboardingFlow() {
-  const { hasOnboarded, actions } = useAppState();
+  const { hasOnboarded, isHydrating, actions } = useAppState();
   const router = useRouter();
 
   const [step, setStep] = useState(0);
@@ -63,8 +65,8 @@ export function OnboardingFlow() {
   }, []);
 
   useEffect(() => {
-    if (hasOnboarded) router.replace("/today");
-  }, [hasOnboarded, router]);
+    if (!isHydrating && hasOnboarded) router.replace("/today");
+  }, [hasOnboarded, isHydrating, router]);
 
   useEffect(() => {
     if (!hasLoadedStep || typeof window === "undefined") return;
@@ -86,7 +88,7 @@ export function OnboardingFlow() {
 
   const showBack = step > 0 && step !== Step.CALCULATING;
 
-  if (hasOnboarded || !hasLoadedStep) {
+  if (isHydrating || hasOnboarded || !hasLoadedStep) {
     return <OnboardingSplash />;
   }
 
@@ -123,6 +125,8 @@ export function OnboardingFlow() {
           <NameStep onNext={onNext} />
         ) : step === Step.BODY ? (
           <BodyStep onNext={onNext} />
+        ) : step === Step.HEALTH ? (
+          <HealthStep onNext={onNext} />
         ) : step === Step.GOAL ? (
           <GoalStep onNext={onNext} />
         ) : step === Step.ACTIVITY ? (

@@ -36,6 +36,8 @@ export function NameStep({ onNext }: { onNext: () => void }) {
               if (e.key === "Enter") submit();
             }}
             placeholder="First name"
+            aria-label="First name"
+            autoCapitalize="words"
             autoFocus
             autoComplete="given-name"
           />

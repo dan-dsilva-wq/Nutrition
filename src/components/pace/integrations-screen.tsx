@@ -1,8 +1,9 @@
 "use client";
 
 import { Activity, Refrigerator, Watch } from "lucide-react";
+import { useAppSurface, useHealthSupported } from "@/lib/health";
+import { AppleHealthCard } from "./apple-health-card";
 import { Card, IconBadge, SectionHeader } from "./primitives";
-import { LockedState } from "./paywall-sheet";
 
 interface Integration {
   id: string;
@@ -41,21 +42,29 @@ export function IntegrationsScreen() {
     },
   ];
 
-  return (
-    <LockedState feature="integrations-sync">
-      <div className="stagger-up space-y-6">
-        <header>
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted">
-            YOU · INTEGRATIONS
-          </p>
-          <h1 className="font-display mt-2 text-[38px] leading-[1.05] text-ink-2">
-            Pull in <span className="text-forest">what counts.</span>
-          </h1>
-          <p className="mt-2 text-sm text-muted">
-            Less typing, more living. Connect what you already wear — coming soon.
-          </p>
-        </header>
+  // The store apps only list what works today; the roadmap stays on the web.
+  const showRoadmap = useAppSurface() === "web";
+  const hasHealth = useHealthSupported();
 
+  return (
+    <div className="stagger-up space-y-6">
+      <header>
+        <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-muted">
+          YOU · INTEGRATIONS
+        </p>
+        <h1 className="font-display mt-2 text-[38px] leading-[1.05] text-ink-2">
+          Pull in <span className="text-forest">what counts.</span>
+        </h1>
+        <p className="mt-2 text-sm text-muted">
+          {hasHealth
+            ? "Less typing, more living. Let Apple Health fill in your steps and weigh-ins."
+            : "Less typing, more living."}
+        </p>
+      </header>
+
+      <AppleHealthCard />
+
+      {showRoadmap ? (
         <section>
           <SectionHeader eyebrow="Roadmap" title="In the works" />
           <ul className="space-y-3">
@@ -72,16 +81,13 @@ export function IntegrationsScreen() {
                       <p className="mt-0.5 text-xs text-muted">{i.body}</p>
                     </div>
                   </div>
-                  <div className="mt-3">
-                    <span className="text-xs text-muted">In testing</span>
-                  </div>
                 </Card>
               </li>
             ))}
           </ul>
         </section>
-      </div>
-    </LockedState>
+      ) : null}
+    </div>
   );
 }
 

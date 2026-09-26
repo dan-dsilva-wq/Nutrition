@@ -10,7 +10,7 @@ Last checked: 29 April 2026
 - Version name: `1.1`
 - Target SDK: `36`
 - Production web URL used by Capacitor: `https://pace-nutrition.vercel.app`
-- Privacy policy URL: `https://pace-nutrition.vercel.app/privacypolicy.html`
+- Privacy policy URL: `https://pace-nutrition.vercel.app/privacy` (the old `/privacypolicy.html` redirects here)
 - Release bundle: `android/app/build/outputs/bundle/release/app-release.aab`
 
 ## Release Manifest Permissions
@@ -101,5 +101,5 @@ cd android
 After any web deploy, verify:
 
 - `https://pace-nutrition.vercel.app` returns `200`.
-- `https://pace-nutrition.vercel.app/privacypolicy.html` returns `200`.
+- `https://pace-nutrition.vercel.app/privacy` returns `200` and `/privacypolicy.html` redirects to it.
 - `POST https://pace-nutrition.vercel.app/api/ai/coach` without a signed-in session returns `401`.

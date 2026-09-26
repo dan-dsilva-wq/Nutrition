@@ -1063,7 +1063,7 @@ function WaterTile({
           onClick={onSub}
           disabled={waterMl <= 0}
           aria-label="Remove 250 ml of water"
-          className="rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-ink-2 disabled:opacity-40"
+          className="inline-flex items-center whitespace-nowrap rounded-full bg-black/5 px-2.5 py-1 text-[11px] font-semibold text-ink-2 disabled:opacity-40"
         >
           −250 ml
         </button>
@@ -1071,7 +1071,7 @@ function WaterTile({
           type="button"
           data-tap
           onClick={onAdd}
-          className="rounded-full bg-forest/15 px-2.5 py-1 text-[11px] font-semibold text-forest"
+          className="inline-flex items-center whitespace-nowrap rounded-full bg-forest/15 px-2.5 py-1 text-[11px] font-semibold text-forest"
         >
           +250 ml
         </button>
@@ -1133,7 +1133,7 @@ function StepsTile({
           type="button"
           data-tap
           onClick={onAdd}
-          className="rounded-full bg-forest/15 px-2.5 py-1 text-[11px] font-semibold text-forest"
+          className="inline-flex items-center whitespace-nowrap rounded-full bg-forest/15 px-2.5 py-1 text-[11px] font-semibold text-forest"
         >
           +1k
         </button>
