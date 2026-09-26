@@ -1,6 +1,7 @@
 import { zodTextFormat } from "openai/helpers/zod";
 import { NextResponse } from "next/server";
-import { requireSignedInUser } from "@/lib/api/auth";
+import { getSignedInUser } from "@/lib/api/auth";
+import { claimUsageForUser } from "@/lib/api/usage-limits";
 import {
   guardrailCoachResponse,
   inferDraftMealFromMessage,
@@ -28,7 +29,7 @@ function formatRecentMessages(
 }
 
 export async function POST(request: Request) {
-  const authError = await requireSignedInUser();
+  const { user, error: authError } = await getSignedInUser();
   if (authError) return authError;
 
   const body = await request.json().catch(() => null);
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
     return errorResponse(parsed.error.issues[0]?.message ?? "Invalid coach request.", 400);
   }
 
+  const usage = await claimUsageForUser(user?.id ?? null, "coach");
+  if (!usage.allowed) return usage.response;
+
   const guardrail = guardrailCoachResponse(parsed.data.message);
   if (guardrail) {
     return NextResponse.json({ coach: sanitizeCoachResponse(guardrail) });
@@ -46,6 +50,7 @@ export async function POST(request: Request) {
   const client = getOpenAIClient();
 
   if (!client) {
+    await usage.release().catch(() => {});
     return errorResponse("OPENAI_API_KEY is required for the AI coach.", 503);
   }
 
@@ -90,6 +95,7 @@ ${parsed.data.message}
       model: openAiModel,
     });
   } catch (error) {
+    await usage.release().catch(() => {});
     const message = error instanceof Error ? error.message : "AI coach failed.";
     return errorResponse(message, 502);
   }

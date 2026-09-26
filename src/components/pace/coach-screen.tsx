@@ -99,6 +99,10 @@ export function CoachScreen() {
           actions: coach.suggestedActions,
           draftMeal: coach.draftMeal ?? undefined,
         });
+      } else if (res.status === 402) {
+        const json = await res.json().catch(() => ({}));
+        setError(json.error ?? "You've reached this week's free coach messages.");
+        setPaywallOpen(true);
       } else if (res.status === 503) {
         actions.appendChat({
           role: "assistant",

@@ -264,6 +264,11 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
         actions.bumpUsage("ai-photo");
         setEstimate(json.estimate as MealEstimate);
         setSource("ai");
+      } else if (res.status === 402) {
+        // Server says the free daily quota is used up.
+        const json = await res.json().catch(() => ({}));
+        setError(json.error ?? "You've used today's free photo estimates.");
+        setPaywallOpen(true);
       } else if (res.status === 503) {
         // No OPENAI_API_KEY → demo fallback so the flow stays usable
         setEstimate(demoEstimate());
