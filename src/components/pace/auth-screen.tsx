@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Mail, ArrowRight, UserPlus } from "lucide-react";
+import { Mail, ArrowRight } from "lucide-react";
 import { Button, Field, Input, Wordmark } from "./primitives";
 import { getSupabase } from "@/lib/state/app-state";
 import {
@@ -26,7 +26,6 @@ export function AuthScreen() {
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [message, setMessage] = useState<string | null>(null);
-  const [missingEmail, setMissingEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!supabase) {
@@ -38,7 +37,6 @@ export function AuthScreen() {
     event.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
-    setMissingEmail(false);
 
     const result =
       mode === "sign-in"
@@ -52,17 +50,11 @@ export function AuthScreen() {
     setIsSubmitting(false);
 
     if (result.error) {
-      if (mode === "sign-in") {
-        const exists = await checkEmailExists(email);
-
-        if (exists === false) {
-          setMissingEmail(true);
-          setMessage("Email address doesn't exist.");
-          return;
-        }
-      }
-
-      setMessage(result.error.message);
+      setMessage(
+        mode === "sign-in"
+          ? "The email or password is incorrect."
+          : result.error.message,
+      );
       return;
     }
     if (mode === "sign-up") {
@@ -123,31 +115,9 @@ export function AuthScreen() {
     }
   }
 
-  async function checkEmailExists(value: string): Promise<boolean | null> {
-    const trimmedEmail = value.trim();
-
-    if (!trimmedEmail) return null;
-
-    try {
-      const response = await fetch("/api/auth/email-exists", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail }),
-      });
-
-      if (!response.ok) return null;
-
-      const payload = (await response.json()) as { exists?: unknown };
-      return typeof payload.exists === "boolean" ? payload.exists : null;
-    } catch {
-      return null;
-    }
-  }
-
   function switchMode(nextMode: "sign-in" | "sign-up") {
     setMode(nextMode);
     setMessage(null);
-    setMissingEmail(false);
   }
 
   return (
@@ -188,17 +158,6 @@ export function AuthScreen() {
           </Field>
           {message ? (
             <p className="text-sm text-clay">{message}</p>
-          ) : null}
-          {missingEmail ? (
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={() => switchMode("sign-up")}
-            >
-              <UserPlus size={16} /> Create account with these details
-            </Button>
           ) : null}
           <Button type="submit" size="lg" fullWidth loading={isSubmitting}>
             {mode === "sign-in" ? "Sign in" : "Create account"} <ArrowRight size={18} />
