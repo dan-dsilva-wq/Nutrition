@@ -2,16 +2,13 @@
 
 import { Capacitor } from "@capacitor/core";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import {
-  BILLING_ENABLED,
-  PRIVACY_POLICY_URL,
-  termsOfUseUrlForPlatform,
-} from "@/lib/billing/config";
+import { BILLING_ENABLED } from "@/lib/billing/config";
 import type { SubscriptionOffer } from "@/lib/billing/offer";
 import {
   billingCanUseNativePurchases,
   loadRevenueCatSubscriptionOffer,
 } from "@/lib/billing/revenuecat-client";
+import { LEGAL_LINKS } from "@/lib/legal";
 import { useAppState } from "@/lib/state/app-state";
 
 function useSubscriptionOffer() {
@@ -59,7 +56,6 @@ export function SubscriptionTerms({ className = "" }: { className?: string }) {
   if (!BILLING_ENABLED) return null;
 
   const storeName = platform === "android" ? "Google Play" : "App Store";
-  const termsUrl = termsOfUseUrlForPlatform(platform);
 
   const priceLine = offer
     ? offer.freeTrialLabel
@@ -77,17 +73,10 @@ export function SubscriptionTerms({ className = "" }: { className?: string }) {
         24 hours before {cancelBefore} ends.
       </p>
       <p className="space-x-3">
-        {termsUrl ? (
-          <a href={termsUrl} target="_blank" rel="noopener noreferrer" className="underline">
-            Terms of Use
-          </a>
-        ) : null}
-        <a
-          href={PRIVACY_POLICY_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline"
-        >
+        <a href={LEGAL_LINKS.terms} target="_blank" rel="noopener noreferrer" className="underline">
+          Terms of Use
+        </a>
+        <a href={LEGAL_LINKS.privacy} target="_blank" rel="noopener noreferrer" className="underline">
           Privacy Policy
         </a>
       </p>
