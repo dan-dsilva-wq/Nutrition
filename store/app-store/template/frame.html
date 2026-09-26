@@ -1,0 +1,65 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Inter:wght@500;600&display=swap" rel="stylesheet">
+<!--
+  App Store screenshot frame. Rendered at DPR 1 at the slot size:
+    phone  (iPhone 6.9")  1320 x 2868
+    tablet (iPad 13")     2064 x 2752
+  Query: ?device=phone|tablet&eyebrow=..&title=..(HTML, <em> for teal)&shot=file-url
+-->
+<style>
+  :root{--ink:#0f1714;--teal:#0d9488}
+  html,body{margin:0;width:100vw;height:100vh;overflow:hidden}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(70vw 50vh at 10% 5%, #c9efe0 0%, transparent 60%),
+      radial-gradient(60vw 45vh at 95% 20%, #d6ecfb 0%, transparent 60%),
+      radial-gradient(70vw 50vh at 50% 105%, #fde3cc 0%, transparent 60%),
+      #fbfaf6;}
+  .cap{position:absolute;left:100px;right:100px;text-align:center}
+  .eyebrow{font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
+  h1{font-family:Fraunces,Georgia,serif;font-weight:600;line-height:1.02;margin:0;letter-spacing:-.02em}
+  h1 em{color:var(--teal)}
+  .device{position:absolute;left:50%;transform:translateX(-50%);background:var(--ink);box-sizing:border-box;display:flex;flex-direction:column;
+    box-shadow:0 60px 140px rgba(15,23,20,.18),0 12px 40px rgba(15,23,20,.10)}
+  .screen{flex:1;overflow:hidden;background:#eaf6ef;display:flex;flex-direction:column}
+  .status{flex:none;display:flex;align-items:center;justify-content:space-between;box-sizing:border-box;font-weight:600}
+  .status .icons{display:flex;gap:14px;align-items:center}
+  .screen img{width:100%;flex:1;min-height:0;object-fit:cover;object-position:top;display:block}
+  .island{position:absolute;left:50%;transform:translateX(-50%);background:var(--ink)}
+
+  /* iPhone: raw 1320x2868 shown at 908px wide -> 1973px tall, plus status bar. */
+  .phone .cap{top:120px}
+  .phone .eyebrow{font-size:40px}
+  .phone h1{font-size:118px;margin-top:28px}
+  .phone .device{top:640px;width:960px;height:2159px;border-radius:120px;padding:26px}
+  .phone .screen{border-radius:96px}
+  .phone .status{height:134px;padding:10px 78px 0;font-size:40px}
+  .phone .island{top:58px;width:250px;height:72px;border-radius:40px}
+
+  /* iPad: raw 2064x2752 shown at 1500px wide -> 2000px tall, plus status bar. */
+  .tablet .cap{top:110px}
+  .tablet .eyebrow{font-size:44px}
+  .tablet h1{font-size:120px;margin-top:26px}
+  .tablet .device{top:600px;width:1560px;height:2110px;border-radius:90px;padding:30px}
+  .tablet .screen{border-radius:62px}
+  .tablet .status{height:50px;padding:14px 60px 0;font-size:28px}
+  .tablet .status svg{transform:scale(.7)}
+  .tablet .island{display:none}
+</style></head>
+<body>
+  <div class="cap"><div class="eyebrow" id="eyebrow"></div><h1 id="title"></h1></div>
+  <div class="device"><div class="screen">
+    <div class="status"><span>9:41</span><span class="icons">
+      <svg width="46" height="30" viewBox="0 0 17 11" aria-hidden="true"><rect x="0" y="7" width="3" height="4" rx=".7"/><rect x="4.5" y="5" width="3" height="6" rx=".7"/><rect x="9" y="2.5" width="3" height="8.5" rx=".7"/><rect x="13.5" y="0" width="3" height="11" rx=".7"/></svg>
+      <svg width="64" height="30" viewBox="0 0 25 12" aria-hidden="true"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="#0f1714" opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="1.8"/><rect x="23" y="4" width="1.5" height="4" rx=".7" opacity=".4"/></svg>
+    </span></div>
+    <img id="shot" alt=""></div><div class="island"></div></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  document.body.className = q.get('device') === 'tablet' ? 'tablet' : 'phone';
+  document.getElementById('eyebrow').textContent = q.get('eyebrow') || '';
+  document.getElementById('title').innerHTML = q.get('title') || '';
+  document.getElementById('shot').src = q.get('shot');
+</script>
+</body></html>
