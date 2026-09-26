@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  FREE_TIER_AI_PHOTO_PER_DAY,
+  FREE_TIER_COACH_PER_WEEK,
+} from "@/lib/free-tier";
 import { useAppState } from "@/lib/state/app-state";
 
 export type Feature =
@@ -56,9 +60,6 @@ type Verdict =
       allowed: false;
       reason: "locked" | "trial-expired" | "daily-cap" | "weekly-cap";
     };
-
-const FREE_TIER_AI_PHOTO_PER_DAY = 3;
-const FREE_TIER_COACH_PER_WEEK = 5;
 
 function isoWeekKey(date = new Date()) {
   const d = new Date(

@@ -10,6 +10,10 @@ const billingMigration = readFileSync(
   join(process.cwd(), "supabase", "migrations", "006_billing_entitlements.sql"),
   "utf8",
 );
+const aiUsageMigration = readFileSync(
+  join(process.cwd(), "supabase", "migrations", "007_ai_usage_limits.sql"),
+  "utf8",
+);
 
 describe("Supabase migration", () => {
   it("enables RLS on every user-owned table", () => {
@@ -49,5 +53,15 @@ describe("Supabase migration", () => {
       "alter table public.billing_events enable row level security;",
     );
     expect(billingMigration).toContain("auth.uid() = user_id");
+  });
+
+  it("keeps AI usage counters server-owned", () => {
+    expect(aiUsageMigration).toContain(
+      "alter table public.ai_usage_counters enable row level security;",
+    );
+    expect(aiUsageMigration).toContain("where c.count < p_limit");
+    expect(aiUsageMigration).toContain(
+      "from public, anon, authenticated;",
+    );
   });
 });
