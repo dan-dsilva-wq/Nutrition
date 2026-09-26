@@ -153,6 +153,11 @@ export default function PrivacyPage() {
           for advertising or marketing, never sold, and never shared with third parties except as needed
           to show it to you in Pace.
         </p>
+        <p>
+          Pace asks only for read access and never writes to Apple Health or Health Connect. Imported
+          steps and weight are treated like entries you typed yourself, so your latest weight can be
+          included when you message the coach, as described under AI features.
+        </p>
       </LegalSection>
 
       <LegalSection title="Reminders">

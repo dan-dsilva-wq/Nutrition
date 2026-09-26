@@ -22,6 +22,7 @@ import { Button, Card, IconBadge, SectionHeader, Stat } from "./primitives";
 import { DEFAULT_PANTRY } from "./foods/shopping";
 import { trialDaysLeft } from "@/lib/entitlement";
 import { useAppVersion } from "@/lib/app-version";
+import { AppleHealthCard } from "./apple-health-card";
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -358,6 +359,8 @@ export function SettingsScreen() {
           </button>
         </form>
       </Card>
+
+      <AppleHealthCard />
 
       <Card>
         <SectionHeader eyebrow="Privacy" title="AI features" />

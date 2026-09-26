@@ -171,12 +171,22 @@ export interface OnboardingExtras {
   weeksAhead?: number;
   /** Meal-photo reminder schedule. Master on/off lives on `reminderState`. */
   photoReminders?: PhotoReminderConfig;
+  /** Apple Health (iOS app only). Pace reads steps and today's weight; it never writes. */
+  appleHealth?: AppleHealthSettings;
   /** Answers from the onboarding health check. Any true flag turns off weight-loss goals. */
   healthFlags?: HealthFlags;
   /** ISO time the user agreed to the Terms, Privacy Policy and health-data processing. */
   legalAcceptedAt?: string;
   /** ISO time the user allowed meal photos and coach messages to be sent to the AI provider. Unset = not allowed. */
   aiConsentAt?: string;
+}
+
+export interface AppleHealthSettings {
+  enabled: boolean;
+  /** When the last Health read ran, for the "Synced 2 min ago" label. */
+  lastSyncedAtIso?: string;
+  /** Timestamp of the last Health weight sample imported, so each one is logged once. */
+  lastWeightSampleIso?: string;
 }
 
 export interface HealthFlags {

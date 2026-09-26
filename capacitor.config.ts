@@ -84,6 +84,18 @@ console.log(`[capacitor.config] WebView will load: ${serverUrl}`);
 
 const allowNavigation = [serverHost];
 
+/**
+ * Apple Health is iOS-only. Keeping @capgo/capacitor-health out of the Android
+ * build stops its Health Connect permissions landing in the Play manifest.
+ * Add any new Android plugin here too, or it will be skipped on sync.
+ */
+const androidPlugins = [
+  "@capacitor/app",
+  "@capacitor/camera",
+  "@capacitor/local-notifications",
+  "@revenuecat/purchases-capacitor",
+];
+
 const config: CapacitorConfig = {
   appId: "com.danieldsilva.pace",
   appName: "Pace",
@@ -94,9 +106,13 @@ const config: CapacitorConfig = {
     androidScheme: "https",
     cleartext: false,
     allowNavigation,
+    // Shown from the bundled webDir when the live site can't load (no signal,
+    // airplane mode). The page retries on its own once the device is back online.
+    errorPath: "offline.html",
   },
   android: {
     backgroundColor: "#fbfaf6",
+    includePlugins: androidPlugins,
   },
   ios: {
     backgroundColor: "#fbfaf6",
