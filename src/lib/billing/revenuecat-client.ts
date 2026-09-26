@@ -5,8 +5,12 @@ import {
   billingConfiguredForClient,
   REVENUECAT_ENTITLEMENT_ID,
   REVENUECAT_OFFERING_ID,
-  REVENUECAT_PUBLIC_API_KEY,
+  revenueCatApiKeyForPlatform,
 } from "@/lib/billing/config";
+import {
+  subscriptionOfferFromProduct,
+  type SubscriptionOffer,
+} from "@/lib/billing/offer";
 import type { Subscription } from "@/lib/state/types";
 import type {
   CustomerInfo,
@@ -17,7 +21,10 @@ import type {
 let configuredForUserId: string | null = null;
 
 export function billingCanUseNativePurchases() {
-  return billingConfiguredForClient() && Capacitor.isNativePlatform();
+  return (
+    Capacitor.isNativePlatform() &&
+    billingConfiguredForClient(Capacitor.getPlatform())
+  );
 }
 
 function subscriptionFromCustomerInfo(customerInfo: CustomerInfo): Subscription {
@@ -72,7 +79,7 @@ async function configureRevenueCat(userId: string, email?: string | null) {
   if (!isConfigured) {
     await Purchases.setLogLevel({ level: LOG_LEVEL.WARN });
     await Purchases.configure({
-      apiKey: REVENUECAT_PUBLIC_API_KEY,
+      apiKey: revenueCatApiKeyForPlatform(Capacitor.getPlatform()),
       appUserID: userId,
     });
     configuredForUserId = userId;
@@ -88,6 +95,29 @@ async function configureRevenueCat(userId: string, email?: string | null) {
   return Purchases;
 }
 
+async function currentPackage(
+  Purchases: Awaited<ReturnType<typeof configureRevenueCat>>,
+) {
+  const offerings = await Purchases.getOfferings();
+  const offering = REVENUECAT_OFFERING_ID
+    ? offerings.all[REVENUECAT_OFFERING_ID] ?? offerings.current
+    : offerings.current;
+  return offering ? pickPackage(offering) : null;
+}
+
+/** The price, renewal period and trial of the package a purchase will buy. */
+export async function loadRevenueCatSubscriptionOffer({
+  userId,
+  email,
+}: {
+  userId: string;
+  email?: string | null;
+}): Promise<SubscriptionOffer | null> {
+  const Purchases = await configureRevenueCat(userId, email);
+  const aPackage = await currentPackage(Purchases);
+  return aPackage ? subscriptionOfferFromProduct(aPackage.product) : null;
+}
+
 export async function purchaseRevenueCatSubscription({
   userId,
   email,
@@ -96,11 +126,7 @@ export async function purchaseRevenueCatSubscription({
   email?: string | null;
 }): Promise<Subscription> {
   const Purchases = await configureRevenueCat(userId, email);
-  const offerings = await Purchases.getOfferings();
-  const offering = REVENUECAT_OFFERING_ID
-    ? offerings.all[REVENUECAT_OFFERING_ID] ?? offerings.current
-    : offerings.current;
-  const aPackage = offering ? pickPackage(offering) : null;
+  const aPackage = await currentPackage(Purchases);
 
   if (!aPackage) {
     throw new Error("No RevenueCat subscription package is configured.");
