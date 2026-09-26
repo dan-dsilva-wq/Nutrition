@@ -232,6 +232,8 @@ interface AppState {
   onboardingExtras: OnboardingExtras;
 
   notice: string | null;
+  /** The meal most recently deleted, kept briefly so it can be undone. */
+  recentlyRemovedMeal: MealLog | null;
 }
 
 export interface AppActions {
@@ -251,6 +253,10 @@ export interface AppActions {
   addMealFromEstimate(estimate: MealEstimate, opts?: { imageUrl?: string }): MealLog;
   updateMeal(id: string, patch: Partial<Omit<MealLog, "id">>): void;
   removeMeal(id: string): void;
+  /** Put the most recently deleted meal back where it was. */
+  undoRemoveMeal(): void;
+  /** Forget the most recently deleted meal (the undo window has passed). */
+  dismissRemovedMeal(): void;
 
   addWater(ml: number): void;
   setWater(ml: number): void;

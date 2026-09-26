@@ -3,7 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAppState } from "@/lib/state/app-state";
-import { resolveGoalIntent } from "@/lib/targets";
+import { formatWeeklyKg, resolveGoalIntent } from "@/lib/targets";
 import { Button, ProgressRing } from "../primitives";
 
 function formatGoalDate(iso?: string) {
@@ -44,8 +44,8 @@ export function PlanReveal({ onNext }: { onNext: () => void }) {
     weeklyChange === 0
       ? "Hold steady"
       : weeklyChange < 0
-        ? `${Math.abs(weeklyChange).toFixed(2)} kg / week loss`
-        : `${weeklyChange.toFixed(2)} kg / week gain`;
+        ? `${formatWeeklyKg(weeklyChange)} kg / week loss`
+        : `${formatWeeklyKg(weeklyChange)} kg / week gain`;
   const macroTotal = Math.max(
     targets.proteinG + targets.carbsG + targets.fatG,
     1,

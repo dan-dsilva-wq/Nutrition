@@ -58,6 +58,25 @@ export function HabitPillars({ onNext }: { onNext: () => void }) {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  const isLast = active >= pillars.length - 1;
+
+  // Walk the reader through every pillar before leaving the step, so the
+  // "I'm in" choices on cards two and three aren't skipped by accident.
+  function advance() {
+    const el = scrollerRef.current;
+    if (isLast || !el) {
+      onNext();
+      return;
+    }
+    const next = active + 1;
+    const card = el.children[next] as HTMLElement | undefined;
+    const left = card
+      ? card.offsetLeft - el.offsetLeft - (el.clientWidth - card.clientWidth) / 2
+      : next * el.clientWidth;
+    el.scrollTo({ left, behavior: "smooth" });
+    setActive(next);
+  }
+
   function commit(id: PillarId, on: boolean) {
     actions.commitTo({ [id]: on });
   }
@@ -130,8 +149,8 @@ export function HabitPillars({ onNext }: { onNext: () => void }) {
       </div>
 
       <div className="mt-auto pt-8">
-        <Button onClick={onNext} size="lg" fullWidth>
-          {active < pillars.length - 1 ? "I'll keep reading" : "Take me in"}{" "}
+        <Button onClick={advance} size="lg" fullWidth>
+          {isLast ? "Take me in" : "I'll keep reading"}{" "}
           <ArrowRight size={18} />
         </Button>
       </div>

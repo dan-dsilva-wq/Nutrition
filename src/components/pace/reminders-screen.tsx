@@ -124,18 +124,25 @@ export function RemindersScreen() {
             data-tap
             disabled={busy}
             onClick={toggle}
-            aria-pressed={on}
-            className={
-              "relative h-7 w-12 rounded-full border transition disabled:opacity-60 " +
-              (on ? "border-forest bg-forest" : "border-white/70 bg-white/65 backdrop-blur")
-            }
+            role="switch"
+            aria-checked={on}
+            aria-label="Meal photo reminders"
+            className="group grid shrink-0 place-items-center disabled:opacity-60"
           >
             <span
+              aria-hidden
               className={
-                "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition " +
-                (on ? "left-[22px]" : "left-0.5")
+                "relative block h-7 w-12 rounded-full border transition " +
+                (on ? "border-forest bg-forest" : "border-stone-2 bg-white/65 backdrop-blur")
               }
-            />
+            >
+              <span
+                className={
+                  "absolute top-0.5 h-[22px] w-[22px] rounded-full bg-white shadow transition-all " +
+                  (on ? "left-[22px]" : "left-0.5")
+                }
+              />
+            </span>
           </button>
         </div>
       </Card>
@@ -286,6 +293,7 @@ function TimeRow({
       </div>
       <input
         type="time"
+        aria-label={`${label} time`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="numerals rounded-lg border border-stone-2 bg-paper px-2 py-1 text-sm text-ink"

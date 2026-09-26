@@ -5,6 +5,7 @@ import {
   calculateWaterTargetMl,
   canOfferWeightLoss,
   checkProfileGuardrails,
+  formatWeeklyKg,
   minimumGoalWeightKg,
   resolveGoalIntent,
   suggestedGoalWeightKg,
@@ -101,6 +102,13 @@ describe("target calculations", () => {
     expect(resolveGoalIntent({ currentWeightKg: 72, goalWeightKg: 72 })).toBe("maintain");
     expect(resolveGoalIntent({ currentWeightKg: 67, goalWeightKg: 72 })).toBe("gain");
     expect(suggestedGoalWeightKg(67, "lose")).toBe(63.6);
+  });
+
+  it("formats weekly change the way the pace was picked", () => {
+    expect(formatWeeklyKg(-0.49)).toBe("0.5");
+    expect(formatWeeklyKg(-0.24)).toBe("0.25");
+    expect(formatWeeklyKg(0.74)).toBe("0.75");
+    expect(formatWeeklyKg(0)).toBe("0");
   });
 });
 

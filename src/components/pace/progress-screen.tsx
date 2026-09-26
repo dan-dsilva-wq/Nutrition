@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAppState } from "@/lib/state/app-state";
 import type { CheckIn, WeightEntry } from "@/lib/state/types";
+import { formatWeeklyKg } from "@/lib/targets";
 import {
   Button,
   Card,
@@ -166,7 +167,7 @@ export function ProgressScreen() {
             value={
               rangeStats.totalKg != null
                 ? `${formatSign(rangeStats.totalKg)} kg`
-                : "-"
+                : "—"
             }
             hint={
               rangeStats.totalKg == null
@@ -183,11 +184,11 @@ export function ProgressScreen() {
             value={
               stats.weeklyKg != null
                 ? `${Math.round(paceRatio(stats.weeklyKg, targets.weeklyWeightChangeKg) * 100)}%`
-                : "-"
+                : "—"
             }
             hint={
               targets.weeklyWeightChangeKg
-                ? `Aim ${targets.weeklyWeightChangeKg.toFixed(2)} kg/wk`
+                ? `Aim ${formatWeeklyKg(targets.weeklyWeightChangeKg)} kg/wk ${targets.weeklyWeightChangeKg < 0 ? "loss" : "gain"}`
                 : ""
             }
           />
@@ -199,7 +200,7 @@ export function ProgressScreen() {
           <InsightTile
             label="Total change"
             value={
-              stats.totalKg != null ? `${formatSign(stats.totalKg)} kg` : "-"
+              stats.totalKg != null ? `${formatSign(stats.totalKg)} kg` : "—"
             }
             hint={
               stats.weeks != null && stats.weeks > 0
