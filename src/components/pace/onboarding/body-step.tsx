@@ -10,8 +10,11 @@ export function BodyStep({ onNext }: { onNext: () => void }) {
   const { draft, onboardingExtras, actions } = useAppState();
   const [local, setLocal] = useState<ProfileDraft>(draft);
 
+  const ageNumber = Number(local.age);
+  const underAge = local.age.trim() !== "" && ageNumber > 0 && ageNumber < 18;
   const isValid =
-    Number(local.age) >= 18 &&
+    ageNumber >= 18 &&
+    ageNumber <= 120 &&
     Number(local.heightCm) > 0 &&
     Number(local.currentWeightKg) > 0;
 
@@ -77,6 +80,13 @@ export function BodyStep({ onNext }: { onNext: () => void }) {
             />
           </Field>
         </div>
+        {underAge ? (
+          <p className="mt-4 rounded-2xl border border-clay/30 bg-white/65 px-3 py-2 text-sm text-clay" role="alert">
+            Pace is for adults aged 18 and over, so we can&apos;t set up a plan for you. If you&apos;d
+            like help with food and growing up healthy, a parent, school nurse or GP is a great place
+            to start.
+          </p>
+        ) : null}
       </div>
       <div className="mt-auto pt-8">
         <Button onClick={submit} size="lg" fullWidth disabled={!isValid}>

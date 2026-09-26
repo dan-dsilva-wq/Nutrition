@@ -43,6 +43,8 @@ export async function POST(request: Request) {
   try {
     const response = await client.responses.create({
       model: openAiModel,
+      // Don't keep user photos/messages on OpenAI's side beyond the request.
+      store: false,
       instructions: nutritionPlanInstructions,
       input: `
 User name: ${name ?? "(not provided)"}

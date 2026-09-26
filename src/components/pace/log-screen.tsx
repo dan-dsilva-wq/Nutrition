@@ -33,6 +33,7 @@ import {
 import { clsx } from "clsx";
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
 import { useEntitlement } from "@/lib/entitlement";
+import { useAiConsent } from "./ai-consent-sheet";
 import { PaywallSheet } from "./paywall-sheet";
 import { Capacitor } from "@capacitor/core";
 import { Camera as NativeCamera } from "@capacitor/camera";
@@ -193,6 +194,7 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const { actions } = useAppState();
   const verdict = useEntitlement("ai-photo-unlimited");
+  const aiConsent = useAiConsent("meal-photo");
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -262,6 +264,11 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
         actions.bumpUsage("ai-photo");
         setEstimate(json.estimate as MealEstimate);
         setSource("ai");
+      } else if (res.status === 402) {
+        // Server says the free daily quota is used up.
+        const json = await res.json().catch(() => ({}));
+        setError(json.error ?? "You've used today's free photo estimates.");
+        setPaywallOpen(true);
       } else if (res.status === 503) {
         // No OPENAI_API_KEY → demo fallback so the flow stays usable
         setEstimate(demoEstimate());
@@ -325,12 +332,12 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
             className="hidden"
             onChange={handleFile}
           />
-          <Button size="lg" className="mt-6" onClick={() => openCapture("camera")}>
+          <Button size="lg" className="mt-6" onClick={() => aiConsent.withConsent(() => void openCapture("camera"))}>
             <Camera size={18} /> Open camera
           </Button>
           <button
             type="button"
-            onClick={() => openCapture("library")}
+            onClick={() => aiConsent.withConsent(() => void openCapture("library"))}
             className="mt-3 text-sm text-muted underline-offset-4 hover:underline"
           >
             Or upload from photos
@@ -397,6 +404,7 @@ function PhotoFlow({ onTypeFood }: { onTypeFood: () => void }) {
         onClose={() => setPaywallOpen(false)}
         feature="ai-photo-unlimited"
       />
+      {aiConsent.sheet}
     </div>
   );
 }
@@ -486,7 +494,7 @@ function EstimateEditor({
           <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
             {source === "demo"
               ? "Demo estimate"
-              : `Confidence ${getMealConfidenceLabel(estimate.confidence)}`}
+              : `AI estimate · Confidence ${getMealConfidenceLabel(estimate.confidence)}`}
           </div>
           <h3 className="font-display text-xl text-ink-2">{headline}</h3>
         </div>
