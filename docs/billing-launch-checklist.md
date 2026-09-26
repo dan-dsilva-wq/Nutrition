@@ -152,10 +152,6 @@ native apps load the same site, so each platform reads its own variable
 The older `NEXT_PUBLIC_REVENUECAT_PUBLIC_API_KEY` is used for any platform whose
 own key is empty.
 
-Optional paywall links: `NEXT_PUBLIC_TERMS_OF_USE_URL` (defaults to Apple's
-standard EULA on iOS) and `NEXT_PUBLIC_PRIVACY_POLICY_URL` (defaults to
-`https://pace-nutrition.vercel.app/privacypolicy.html`).
-
 ## Sandbox deployment
 
 Billing must be on for a deployment before you can test purchases or the webhook,
@@ -218,9 +214,10 @@ trial to real billing. Test on a separate deployment first.
   and Privacy Policy. With billing on, the paywall sheet, locked cards and
   onboarding trial offer show these under the subscribe button. In the sandbox
   build, confirm the price line appears (e.g. "7-day free trial, then £4.99 per
-  month.") and both links open. Also add the Terms of Use link to the App Store
-  description (App Store Connect > the version > Description, or the EULA field
-  in App Information).
+  month.") and the Terms of Use (`/terms`) and Privacy Policy (`/privacy`) links
+  open. In App Store Connect > App Information, set the License Agreement to
+  `https://pace-nutrition.vercel.app/terms` (or link it in the description), and
+  use `https://pace-nutrition.vercel.app/privacy` as the Privacy Policy URL.
 - App Privacy answers include Purchases.
 - The review notes explain the 1-week free trial and the demo account can reach
   the paywall.
