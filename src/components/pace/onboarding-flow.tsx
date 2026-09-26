@@ -40,7 +40,7 @@ const Step = {
 const TOTAL = 13;
 
 export function OnboardingFlow() {
-  const { hasOnboarded, actions } = useAppState();
+  const { hasOnboarded, isHydrating, actions } = useAppState();
   const router = useRouter();
 
   const [step, setStep] = useState(0);
@@ -63,8 +63,8 @@ export function OnboardingFlow() {
   }, []);
 
   useEffect(() => {
-    if (hasOnboarded) router.replace("/today");
-  }, [hasOnboarded, router]);
+    if (!isHydrating && hasOnboarded) router.replace("/today");
+  }, [hasOnboarded, isHydrating, router]);
 
   useEffect(() => {
     if (!hasLoadedStep || typeof window === "undefined") return;
@@ -86,7 +86,7 @@ export function OnboardingFlow() {
 
   const showBack = step > 0 && step !== Step.CALCULATING;
 
-  if (hasOnboarded || !hasLoadedStep) {
+  if (isHydrating || hasOnboarded || !hasLoadedStep) {
     return <OnboardingSplash />;
   }
 

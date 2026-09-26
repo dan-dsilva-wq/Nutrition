@@ -307,3 +307,14 @@ export function createBusyHomeWorkoutPlan(equipment: EquipmentPreference = "none
     },
   ];
 }
+
+/**
+ * Display a weekly weight change (kg) the way people pick it: snapped to the
+ * nearest 0.05 kg with trailing zeros dropped, so a chosen 0.5 kg/week pace
+ * reads "0.5" rather than the calorie-rounded "0.49". Sign is dropped; callers
+ * say "loss" or "gain".
+ */
+export function formatWeeklyKg(kg: number): string {
+  const snapped = Math.round(Math.abs(kg) * 20) / 20;
+  return String(Number(snapped.toFixed(2)));
+}

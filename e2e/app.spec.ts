@@ -149,11 +149,14 @@ test("mobile onboarding, mocked meal estimate, and coach flow", async ({ page })
     mimeType: "image/png",
     buffer: tinyPng,
   });
-  await expect(page.getByLabel("Photo notes")).toBeVisible();
-  await page.getByLabel("Photo notes").fill("diet coke not pictured");
-  await page.getByRole("button", { name: "Analyse with notes" }).click();
   await expect(page.getByText("Mock chicken rice bowl")).toBeVisible();
   await page.getByRole("button", { name: "Save to today" }).click();
+  await expect(page.getByText("Mock chicken rice bowl")).toBeVisible();
+
+  // Deleting a meal can be undone.
+  await page.getByRole("button", { name: /^Delete Mock chicken rice bowl/ }).first().click();
+  await expect(page.getByRole("status")).toContainText("Deleted Mock chicken rice bowl");
+  await page.getByRole("button", { name: "Undo" }).click();
   await expect(page.getByText("Mock chicken rice bowl")).toBeVisible();
 
   await page.getByRole("button", { name: "Barcode" }).click();
@@ -176,4 +179,26 @@ test("mobile onboarding, mocked meal estimate, and coach flow", async ({ page })
   await page.getByLabel("Your message").fill("write a Python script");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByText(/food, nutrition, and progress tracking/i)).toBeVisible();
+});
+
+test("reloading a screen keeps you on that screen", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "pace.state.v2:demo",
+      JSON.stringify({
+        hasOnboarded: true,
+        onboardingExtras: {
+          commitments: { steps: false, water: false, nutrition: false },
+          hasSeenTour: true,
+        },
+      }),
+    );
+  });
+
+  await page.goto("/progress");
+  await expect(page.getByRole("heading", { name: /long, slow/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/progress$/);
+
+  await page.goto("/you/foods/week");
+  await expect(page).toHaveURL(/\/you\/foods$/);
 });

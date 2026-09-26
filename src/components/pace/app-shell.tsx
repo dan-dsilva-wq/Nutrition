@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { clsx } from "clsx";
 import {
   Home,
@@ -11,12 +11,12 @@ import {
   X,
   MessageCircle,
   Target,
-  Dumbbell,
   Salad,
   BellRing,
   Activity,
   Settings as SettingsIcon,
   LogOut,
+  Undo2,
 } from "lucide-react";
 import { useAppState } from "@/lib/state/app-state";
 import { Wordmark } from "./primitives";
@@ -38,7 +38,8 @@ const tabs: NavItem[] = [
 
 const drawerItems: NavItem[] = [
   { href: "/you/plan", label: "You & targets", icon: <Target size={18} aria-hidden /> },
-  { href: "/you/workouts", label: "Workouts", icon: <Dumbbell size={18} aria-hidden /> },
+  // Workouts is hidden until it has real content: App Review rejects
+  // "coming soon" placeholder screens.
   { href: "/you/reminders", label: "Reminders", icon: <BellRing size={18} aria-hidden /> },
   { href: "/you/integrations", label: "Integrations", icon: <Activity size={18} aria-hidden /> },
   { href: "/you/settings", label: "Settings", icon: <SettingsIcon size={18} aria-hidden /> },
@@ -49,6 +50,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { auth, profile, onboardingExtras, actions } = useAppState();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [drawerOpen]);
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -154,6 +164,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setDrawerOpen(false)}
           />
           <aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
             className="sheet-anim absolute inset-y-0 right-0 w-[88%] max-w-sm overflow-y-auto bg-white/80 shadow-elevated backdrop-blur-2xl border-l border-white/70"
             style={{
               paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)",
@@ -228,6 +241,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       ) : null}
 
+      <UndoMealToast />
       <AppTour />
     </div>
   );
@@ -250,7 +264,7 @@ function NavTab({
       aria-current={active ? "page" : undefined}
       className={clsx(
         "flex flex-col items-center gap-1 pt-2 pb-1 text-[11px] font-medium tracking-tight",
-        active ? "text-ink-2" : "text-faint hover:text-muted",
+        active ? "text-ink-2" : "text-muted hover:text-ink-2",
       )}
     >
       <span
@@ -263,5 +277,45 @@ function NavTab({
       </span>
       <span>{item.label}</span>
     </Link>
+  );
+}
+
+const UNDO_WINDOW_MS = 5000;
+
+function UndoMealToast() {
+  const { recentlyRemovedMeal, actions } = useAppState();
+  const { dismissRemovedMeal } = actions;
+
+  useEffect(() => {
+    if (!recentlyRemovedMeal) return;
+    const timer = window.setTimeout(dismissRemovedMeal, UNDO_WINDOW_MS);
+    return () => window.clearTimeout(timer);
+  }, [recentlyRemovedMeal, dismissRemovedMeal]);
+
+  return (
+    <div
+      aria-live="polite"
+      className="pointer-events-none fixed inset-x-0 z-40 flex justify-center px-5"
+      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)" }}
+    >
+      {recentlyRemovedMeal ? (
+        <div
+          role="status"
+          className="slide-up-anim pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-ink-2 py-2 pl-4 pr-2 text-sm text-white shadow-elevated"
+        >
+          <span className="min-w-0 flex-1 truncate">
+            Deleted {recentlyRemovedMeal.name}
+          </span>
+          <button
+            type="button"
+            data-tap
+            onClick={actions.undoRemoveMeal}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 font-semibold text-[#5eead4] hover:bg-white/10"
+          >
+            <Undo2 size={16} aria-hidden /> Undo
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Check, Pencil } from "lucide-react";
 import {
   calculateDailyTargets,
+  formatWeeklyKg,
   suggestedGoalWeightKg,
   type ActivityLevel,
   type GoalIntent,
@@ -42,9 +43,9 @@ const goalIntentLabels: Record<GoalIntent, string> = {
 function paceValue(weeklyWeightChangeKg: number) {
   if (weeklyWeightChangeKg === 0) return "Hold";
   if (weeklyWeightChangeKg < 0) {
-    return `${Math.abs(weeklyWeightChangeKg).toFixed(2)}kg/wk loss`;
+    return `${formatWeeklyKg(weeklyWeightChangeKg)} kg/wk loss`;
   }
-  return `${weeklyWeightChangeKg.toFixed(2)}kg/wk gain`;
+  return `${formatWeeklyKg(weeklyWeightChangeKg)} kg/wk gain`;
 }
 
 export function PlanScreen() {

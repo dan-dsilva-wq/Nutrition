@@ -237,7 +237,7 @@ export function SettingsScreen() {
           <Stat label="Goal" value={`${profile.goalWeightKg} kg`} />
           <Stat
             label="Activity"
-            value={profile.activityLevel}
+            value={profile.activityLevel.charAt(0).toUpperCase() + profile.activityLevel.slice(1)}
             hint={`${profile.workoutsPerWeek} workouts/wk`}
           />
           <Stat label="Daily target" value={`${targets.calories} kcal`} />
@@ -271,20 +271,20 @@ export function SettingsScreen() {
             value={skipDraft}
             onChange={(e) => setSkipDraft(e.target.value)}
             placeholder="Add allergy or food — e.g. Peanuts"
-            className="flex-1 rounded-full border border-hairline bg-paper px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-clay"
+            className="min-w-0 flex-1 rounded-full border border-hairline bg-paper px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-clay"
           />
           <button
             type="submit"
             data-tap
             disabled={!skipDraft.trim()}
-            className="tap-bounce inline-flex h-10 items-center gap-1 rounded-full bg-clay px-4 text-sm font-medium text-white disabled:bg-stone-2 disabled:text-faint"
+            className="tap-bounce inline-flex h-10 shrink-0 items-center gap-1 rounded-full bg-clay px-4 text-sm font-medium text-white disabled:bg-stone-2 disabled:text-faint"
           >
             <Plus size={14} aria-hidden /> Add
           </button>
         </form>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {skippedIngredients.length === 0 ? (
-            <span className="rounded-full bg-paper px-3 py-1.5 text-xs text-faint">
+            <span className="rounded-full bg-paper px-3 py-1.5 text-xs text-muted">
               Nothing skipped yet.
             </span>
           ) : (
@@ -342,13 +342,13 @@ export function SettingsScreen() {
             value={pantryDraft}
             onChange={(e) => setPantryDraft(e.target.value)}
             placeholder="Add a staple — e.g. Garlic"
-            className="flex-1 rounded-full border border-hairline bg-paper px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-forest"
+            className="min-w-0 flex-1 rounded-full border border-hairline bg-paper px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-forest"
           />
           <button
             type="submit"
             data-tap
             disabled={!pantryDraft.trim()}
-            className="tap-bounce inline-flex h-10 items-center gap-1 rounded-full bg-forest px-4 text-sm font-medium text-white disabled:bg-stone-2 disabled:text-faint"
+            className="tap-bounce inline-flex h-10 shrink-0 items-center gap-1 rounded-full bg-forest px-4 text-sm font-medium text-white disabled:bg-stone-2 disabled:text-faint"
           >
             <Plus size={14} aria-hidden /> Add
           </button>

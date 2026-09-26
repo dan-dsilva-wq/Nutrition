@@ -6,6 +6,7 @@ import { useAppState } from "@/lib/state/app-state";
 import {
   HIGH_WEEKLY_LOSS_KG,
   calculateDailyTargets,
+  formatWeeklyKg,
   suggestedGoalWeightKg,
   type GoalIntent,
 } from "@/lib/targets";
@@ -235,7 +236,7 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
               </button>
             </div>
             <p className="mt-2 text-xs text-muted">
-              Current pace: {weeklyRateKg.toFixed(2)} kg/week.
+              Current pace: {formatWeeklyKg(weeklyRateKg)} kg/week.
             </p>
             {customOpen ? (
               <Field label="Custom kg/week" hint="Allowed range: 0.1 to 1.2 kg/week." className="mt-3">
@@ -267,7 +268,7 @@ export function GoalStep({ onNext }: { onNext: () => void }) {
               <span className="numerals text-3xl text-ink-2">
                 {projection.weeklyChange === 0
                   ? "0.0"
-                  : Math.abs(projection.weeklyChange).toFixed(2)}
+                  : formatWeeklyKg(projection.weeklyChange)}
               </span>
               <span className="text-sm text-muted">kg / week</span>
             </div>
